@@ -5,9 +5,7 @@ mod day;
 mod day1;
 
 fn main() {
-    println!("Hello, world!");
-    
-    
+    test_day1().unwrap();
 }
 
 fn test_day1() -> std::io::Result<()> {
@@ -15,7 +13,7 @@ fn test_day1() -> std::io::Result<()> {
     run_with_test(
         &Day1,
         "input/day1e.txt",
-        (0,0),
+        (209,281),
         "input/day1.txt"
     )
 }
