@@ -34,43 +34,23 @@ pub fn run_with_test<TData, TDay: Day<TData>>(
 
 pub fn run_with_test_2<TData, TDay: Day<TData>>(
     day: &TDay,
-    example_file: &str,
+    example_file_1: &str,
+    example_file_2: &str,
     example_expected: (i64, i64),
     full_file: &str,
 ) -> std::io::Result<()> {
-    let file_content_example = read_to_string(example_file)?;
-    let file_content_full = read_to_string(full_file)?;
+    println!("Testing with example dataset: ");
+    let example_actual = run_2(day, example_file_1, example_file_2)?;
+    if example_actual != example_expected {
+        println!("Error! Expected answer\n\"Part 1: {}, Part 2: {}\", but got\n\"Part 1: {}, Part 2: {}\"\x07",
+                 example_expected.0, example_expected.1,
+                 example_actual.0, example_actual.1);
 
-    print!("Example - ");
-    let file_data_example = test_parse_data(day, file_content_example);
-    print!("Full - ");
-    let file_data_full = test_parse_data(day, file_content_full);
-
-    print!("Example - ");
-    let part_1_example = test_part_1(day, &file_data_example);
-    if part_1_example != example_expected.0 {
-        println!(
-            "Error! Expected answer\n\"Part 1: {}\", but got\n\"Part 1: {}\"\x07",
-            example_expected.0, part_1_example
-        );
         return Ok(());
     }
 
-    print!("Actual - ");
-    let _ = test_part_1(day, &file_data_full);
-
-    print!("Example - ");
-    let part_2_example = test_part_2(day, &file_data_example);
-    if part_2_example != example_expected.1 {
-        println!(
-            "Error! Expected answer\n\"Part 2: {}\", but got\n\"Part 2: {}\"\x07",
-            example_expected.1, part_2_example
-        );
-        return Ok(());
-    }
-
-    print!("Actual - ");
-    let _ = test_part_2(day, &file_data_full);
+    println!("Example Successful! Moving to full dataset:");
+    let _ = run(day, full_file)?;
 
     print!("\x07");
 
@@ -108,6 +88,18 @@ fn test_parse_data<TData, TDay: Day<TData>>(day: &TDay, file_content: String) ->
     println!();
 
     file_data
+}
+
+pub fn run_2<TData, TDay: Day<TData>>(day: &TDay, file_name_1: &str, file_name_2: &str) -> std::io::Result<(i64, i64)> {
+    let file_content = fs::read_to_string(file_name_1)?;
+    let file_data = test_parse_data(day, file_content);
+    let part_1 = test_part_1(day, &file_data);
+    
+    let file_content = fs::read_to_string(file_name_2)?;
+    let file_data = test_parse_data(day, file_content);
+    let part_2 = test_part_2(day, &file_data);
+
+    Ok((part_1, part_2))
 }
 
 pub fn run<TData, TDay: Day<TData>>(day: &TDay, file_name: &str) -> std::io::Result<(i64, i64)> {
