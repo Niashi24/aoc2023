@@ -1,5 +1,4 @@
-﻿use std::slice::Iter;
-use crate::day::Day;
+﻿use crate::day::Day;
 pub struct Day1;
 
 #[derive(Clone)]

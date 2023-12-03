@@ -1,5 +1,4 @@
 ﻿use itertools::Itertools;
-use regex::Regex;
 use crate::day2::Color::{Blue, Green, Red};
 use crate::day::Day;
 

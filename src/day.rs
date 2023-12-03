@@ -1,4 +1,4 @@
-﻿use std::fs::{self, read_to_string};
+﻿use std::fs::{self};
 
 pub trait Day<TData> {
     fn parse_file(&self, file_content: String) -> TData;
