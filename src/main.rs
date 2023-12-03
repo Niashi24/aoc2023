@@ -43,6 +43,6 @@ fn test_day3() -> std::io::Result<()> {
         &Day3,
         "input/day3e.txt",
         (4361,467835),
-        "input/day3.txt"
+        "input/big/day3big.txt"
     )
 }
