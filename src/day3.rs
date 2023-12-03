@@ -1,5 +1,6 @@
 ﻿use std::collections::HashSet;
 use regex::Regex;
+use std::env;
 use crate::day::Day;
 use crate::vector::V2I;
 
@@ -24,19 +25,26 @@ impl Day<Info> for Day3 {
                 .filter(|(_, c)| !c.is_numeric() && c != &'.')
                 .map(move |(col, c)| (c, V2I::new(col as i32, row)))
         }).flat_map(|x| x).collect();
+
+        #[cfg(windows)]
+        const LINE_ENDING: &'static str = "\r\n";
+        #[cfg(not(windows))]
+        const LINE_ENDING: &'static str = "\n";
         
         let num_regex = Regex::new(r"(\d+)").unwrap();
+        let width = file_content.lines().next().unwrap().chars().count() + LINE_ENDING.len();
+        // dbg!(width);
         
-        let nums: Vec<Number> = file_content.lines().enumerate().map(|(row, line)| {
-            let row = row as i32;
-            num_regex.captures_iter(line).map(move |x| {
-                let v = x.get(0).unwrap();
+        let nums = num_regex.captures_iter(&file_content)
+            .map(|m| {
+                let m = m.get(0).unwrap();
+                let (y, x) = (m.start() / width, m.start() % width);
+                // println!("({}, {})", x, y);
                 Number {
-                    value: v.as_str().parse().unwrap(),
-                    positions: v.range().map(|x| V2I::new(x as i32, row)).collect()
+                    value: m.as_str().parse().unwrap(),
+                    positions: (0..m.len()).map(|dx| V2I::new((x + dx) as i32, y as i32)).collect()
                 }
-            })
-        }).flat_map(|x| x).collect();
+            }).collect();
         
         Info {
             numbers: nums,
@@ -48,9 +56,9 @@ impl Day<Info> for Day3 {
         // Hashmap: O(s + n)
         let mut filled = HashSet::<V2I>::new();
         data.symbols.iter().for_each(|(_, p)| {
-            for y in [-1,0,1]{
+            for y in [-1,0,1] {
                 for x in [-1,0,1] {
-                    filled.insert(V2I::new(x, y) + *p);
+                    filled.insert(V2I::new(x + p.x, y + p.y));
                 }
             }
         });
@@ -72,6 +80,7 @@ impl Day<Info> for Day3 {
             .map(|(_, p)| {
                 let (prod, count) = data.numbers.iter()
                     .filter(|x| x.positions.iter().any( |pos| near(pos, p)))
+                    .take(3) // very small optimization to only search first 3
                     .fold((1, 0), |(p, c), s| (p * s.value, c + 1));
                 if count == 2 { prod } else { 0 }
             })

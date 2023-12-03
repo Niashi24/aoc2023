@@ -38,7 +38,7 @@ fn test_day2() -> std::io::Result<()> {
 }
 
 fn test_day3() -> std::io::Result<()> {
-    println!("<--------    Running Day 2    -------->");
+    println!("<--------    Running Day 3    -------->");
     run_with_test(
         &Day3,
         "input/day3e.txt",
