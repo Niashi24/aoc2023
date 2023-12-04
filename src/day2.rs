@@ -23,14 +23,9 @@ impl Day<Info> for Day2 {
     fn parse_file(&self, file_content: String) -> Info {
         let file_content = file_content.replace(",", "");
         Info {
-            games: file_content.lines().map(|x| {
-                // let x = line.replace(",", "");
-                
-                let id = x.chars().skip_while(|x| !x.is_numeric()).take_while(|x| *x != ':')
-                    .collect::<String>().parse::<u32>().unwrap();
-                
+            games: file_content.lines().enumerate().map(|(id,x)| {                
                 Game {
-                    id,
+                    id: (id + 1) as u32,
                     rounds: x.chars().skip_while(|x| *x != ':').skip(1).collect::<String>().split(";")
                         .map(|x| x.split(" ").skip(1).tuples::<(_,_)>().map(|(a, b)| {
                             let num = a.parse::<u32>().unwrap();
