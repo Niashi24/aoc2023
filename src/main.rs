@@ -1,6 +1,6 @@
 use crate::day1::Day1;
 use crate::day2::Day2;
-use crate::day::{run_with_test, run_with_test_2};
+use crate::day::{run, run_with_test, run_with_test_2};
 use crate::day3::Day3;
 use crate::day4::Day4;
 
@@ -19,11 +19,12 @@ fn main() -> std::io::Result<()> {
 
 fn full_test() -> std::io::Result<()> {
     let now = std::time::Instant::now();
-    test_day1()?;
-    test_day2()?;
-    test_day3()?;
+    run(&Day1, "input/big/day1.txt")?;
+    run(&Day2, "input/big/day2.txt")?;
+    run(&Day3, "input/big/day3.txt")?;
+    run(&Day4, "input/day4.txt")?;
     let elapsed = now.elapsed();
-    println!("Elapsed Time for all days (1-3): {:.2?}", elapsed);
+    println!("Elapsed Time for all days (1-4): {:.2?}", elapsed);
     Ok(())
 }
 
