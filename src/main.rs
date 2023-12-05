@@ -7,6 +7,7 @@ use crate::day2::Day2;
 use crate::day::{run, run_with_test, run_with_test_2};
 use crate::day3::Day3;
 use crate::day4::Day4;
+use crate::day5::Day5;
 
 mod day;
 mod day1;
@@ -17,17 +18,7 @@ mod vector;
 mod day5;
 
 fn main() -> std::io::Result<()> {
-    
-    // 
-    // 
-    // 
-    test_day4()?;
-    let timer = std::time::Instant::now();
-    let i = io::BufReader::new(File::open("input/day4.txt").unwrap()).lines().map(Result::unwrap).map(|x| x.split(": ").nth(1).unwrap().split(" | ").map(str::to_owned).collect::<Vec<_>>()).map(|mut x|(x.get(0).unwrap().split_whitespace().map(str::parse).map(Result::unwrap).collect(),x.get(1).unwrap().split_whitespace().map(str::parse).map(Result::unwrap).collect())).enumerate().fold((vec![],0),|(mut h,t),(i,(w,n)):(usize,(Vec<usize>,Vec<usize>))|{let cc = if let Some(x) = h.get(i) {*x} else {h.push(1); 1};((i+1)..=(i+n.iter().filter(|x|w.contains(x)).count())).for_each(|i|{if let Some(x) = h.get_mut(i) { *x += cc } else {h.push(1+cc)}});(h, t + cc)}).1;
-    let elapsed = timer.elapsed();
-    
-    println!("Found {} in {:.2?}", i, elapsed);
-    // full_test()?;
+    test_day5()?;
     Ok(())
 }
 
@@ -80,5 +71,15 @@ fn test_day4() -> std::io::Result<()> {
         "input/day4e.txt",
         (13,30),
         "input/day4.txt"
+    )
+}
+
+fn test_day5() -> std::io::Result<()> {
+    println!("<--------    Running Day 5    -------->");
+    run_with_test(
+        &Day5,
+        "input/day5e.txt",
+        (35,46),
+        "input/day5.txt"
     )
 }
