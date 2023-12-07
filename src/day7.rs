@@ -1,26 +1,19 @@
 use std::cmp::Ordering;
 use std::collections::HashMap;
-use std::marker::PhantomData;
-use itertools::Itertools;
 use crate::day::Day;
 
 pub struct Day7;
 
 pub struct Data {
-    hands: Vec<(Hand::<Part1>, u32)>
+    hands: Vec<(Hand, u32)>
 }
 
-#[derive(Eq, PartialEq, Clone, Debug)]
-pub struct Part1;
-
-#[derive(Eq, PartialEq, Clone, Debug)]
-pub struct Part2;
-
-#[derive(Eq, PartialEq, Clone)]
+#[derive(Eq, PartialEq, Clone, PartialOrd)]
 #[derive(Debug)]
-pub struct Hand<P>([u32; 5], HandType, PhantomData<P>);
+pub struct Hand([u32; 5], HandType);
 
-#[derive(Eq, PartialEq, Clone, Debug, Ord, PartialOrd)]
+#[derive(Eq, PartialEq, Clone, Ord, PartialOrd)]
+#[derive(Debug)]
 pub enum HandType {Five = 7, Four = 6, Full = 5, Three = 4, Two = 3, One = 2, High = 1}
 
 fn cards_to_type_1(cards: &[u32; 5]) -> HandType {
@@ -69,50 +62,12 @@ fn cards_to_type_2(cards: &[u32; 5]) -> HandType {
     }
 }
 
-impl Ord for Hand<Part1> {
+impl Ord for Hand{
     fn cmp(&self, other: &Self) -> Ordering {
         match self.1.cmp(&other.1) {
-            Ordering::Less => Ordering::Less,
-            Ordering::Greater => Ordering::Greater,
-            Ordering::Equal => {
-                self.0.iter().zip(other.0.iter())
-                    .map(|(a, b)| a.cmp(b))
-                    .filter(|x| x != &Ordering::Equal)
-                    .next().unwrap_or(Ordering::Equal)
-            }
+            Ordering::Equal => self.0.cmp(&other.0),
+            x => x
         }
-    }
-}
-
-impl PartialOrd for Hand<Part1> {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for Hand<Part2> {
-    fn cmp(&self, other: &Self) -> Ordering {
-        #[inline]
-        fn true_value(a: &u32) -> &u32 {
-            if a == &JOKER { &0 } else { a }
-        }
-
-        match self.1.cmp(&other.1) {
-            Ordering::Less => Ordering::Less,
-            Ordering::Greater => Ordering::Greater,
-            Ordering::Equal => {
-                self.0.iter().map(true_value).zip(other.0.iter().map(true_value))
-                    .map(|(a, b)| a.cmp(b))
-                    .filter(|x| x != &Ordering::Equal)
-                    .next().unwrap_or(Ordering::Equal)
-            }
-        }
-    }
-}
-
-impl PartialOrd for Hand<Part2> {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
     }
 }
 
@@ -136,7 +91,7 @@ impl Day<Data> for Day7 {
                 .map(|(cds, bid)| {
                     let cards = cds.chars().map(char_to_value).collect::<Vec<_>>().try_into().unwrap();
                     let card_type = cards_to_type_1(&cards);
-                    (Hand::<Part1>(cards, card_type, PhantomData), bid.parse().unwrap())
+                    (Hand(cards, card_type), bid.parse().unwrap())
                 })
                 .collect()
         }
@@ -157,9 +112,11 @@ impl Day<Data> for Day7 {
             .cloned()
             .map(|(h, b)| {
                 let new_type = cards_to_type_2(&h.0);
-                // dbg!(&h)
-                let new_hand = Hand::<Part2>(h.0, new_type, PhantomData);
-                // dbg!(&h, &new_hand);
+                #[inline]
+                fn true_value(a: u32) -> u32 {
+                    if a == JOKER { 0 } else { a }
+                }
+                let new_hand = Hand(h.0.map(true_value), new_type);
                 (new_hand, b)
             })
             .collect::<Vec<_>>();
