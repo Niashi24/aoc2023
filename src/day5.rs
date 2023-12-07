@@ -153,6 +153,29 @@ impl Day<Info> for Day5 {
         //     }
         //     tr
         // })};
+
+        dbg!(data.transform(82));
+
+        let y = data.maps.iter().fold(ranges, |mut ranges, map| {
+            let r = ranges.into_iter().flat_map(|a| {
+                let mut to_review = vec![a];
+                let mut final_ranges = vec![];
+                while let Some(a) = to_review.pop() {
+                    if let Some(b) = map.ranges.iter().find(|(b, _)| intersects(&a, b)) {
+                        let (difference, intersect) = difference_intersect(a, b.clone());
+
+                        difference.push_to(&mut to_review);
+                        final_ranges.push(intersect);
+                    } else {
+                        final_ranges.push(a);
+                    }
+                }
+                final_ranges
+            }).dedup().collect();
+            dbg!(r)
+        }).iter().map(|r| r.start).min().unwrap();
+        dbg!(y);
+        y
         
         // let big_map = Map { ranges: data.maps.iter().map(|x| &x.ranges).fold(vec![], |t1, t2| {
         //     let mut tr = t1.iter().fold(vec![], |mut fr, (a, c): &(Range<i64>, i64)| {
@@ -228,11 +251,16 @@ impl Day<Info> for Day5 {
         // data.maps.iter().map(|x| x.ranges)
         
         // 46
-        0
+        // 0
     }
 }
 
 pub fn offset(a: &Range<i64>, d: i64) -> Range<i64> { (a.start+d)..(a.end+d) }
+
+#[test]
+fn test_offset() {
+    assert_eq!(offset(&(0..10), 10), 10..20);
+}
 
 pub fn intersect(a: (Range<i64>, i64), b: (Range<i64>, i64)) 
     -> (Vec<(Range<i64>, i64)>, Vec<(Range<i64>, i64)>) {
@@ -244,7 +272,7 @@ pub fn intersect(a: (Range<i64>, i64), b: (Range<i64>, i64))
             Ordering::Greater => '>'
         }
     }
-    
+
     match (a.0.start.cmp(&b.0.start), b.0.start.cmp(&a.0.end), a.0.end.cmp(&b.0.end)) {
         // ::
         (Ordering::Equal, Ordering::Less, Ordering::Equal) => (vec![], vec![(a.0, a.1 + b.1)]),
@@ -268,13 +296,13 @@ pub fn intersect(a: (Range<i64>, i64), b: (Range<i64>, i64))
         (Ordering::Less, Ordering::Less, Ordering::Greater) => (vec![(a.0.start..b.0.start, a.1), (b.0.end..a.0.end, a.1)], vec![(b.0, a.1 + b.1)]),
         // '.'.
         (Ordering::Less, Ordering::Less, Ordering::Less) => (vec![(a.0.start..b.0.start, a.1)], vec![(b.0.start..a.0.end, a.1 + b.1), (a.0.end..b.0.end, b.1)]),
-        (o1, o2, o3) => 
+        (o1, o2, o3) =>
             panic!("Error: Unused combination {} {} {} for {}..{} and {}..{}", fmt(&o1), fmt(&o2), fmt(&o3), a.0.start, a.0.end, b.0.start, b.0.end)
     }
 }
 
-fn intersect_3(a: (Range<i64>, i64), b: (Range<i64>, i64))
-                 -> (Multi<(Range<i64>, i64)>, Multi<(Range<i64>, i64)>) {
+fn difference_intersect(a: Range<i64>, b: (Range<i64>, i64))
+                        -> (Multi<Range<i64>>, Range<i64>) {
     // Just debug function, ignore
     fn fmt(o: &Ordering) -> char {
         match o {
@@ -284,78 +312,87 @@ fn intersect_3(a: (Range<i64>, i64), b: (Range<i64>, i64))
         }
     }
 
-    match (a.0.start.cmp(&b.0.start), b.0.start.cmp(&a.0.end), a.0.end.cmp(&b.0.end)) {
+    match (a.start.cmp(&b.0.start), b.0.start.cmp(&a.end), a.end.cmp(&b.0.end)) {
         // ::
-        (Ordering::Equal, Ordering::Less, Ordering::Equal) => (Multi::None, Multi::One((a.0, a.1 + b.1))),
+        (Ordering::Equal, Ordering::Less, Ordering::Equal) => (Multi::None, offset(&a, b.1)),
         // :.'
-        (Ordering::Equal, Ordering::Less, Ordering::Greater) => (Multi::One((b.0.end..a.0.end, a.1)), Multi::One((b.0, a.1 + b.1))),
+        (Ordering::Equal, Ordering::Less, Ordering::Greater) => (Multi::One(b.0.end..a.end), offset(&b.0, b.1)),
         // :'.
-        (Ordering::Equal, Ordering::Less, Ordering::Less) => (Multi::None, Multi::Two((a.0.clone(), a.1 + b.1), (a.0.end..b.0.end, b.1))),
+        (Ordering::Equal, Ordering::Less, Ordering::Less) => (Multi::None, offset(&a, b.1)),
         // .':
-        (Ordering::Greater, Ordering::Less, Ordering::Equal) => (Multi::None, Multi::Two((a.0.clone(), a.1 + b.1), (b.0.start..a.0.start, b.1))),
+        (Ordering::Greater, Ordering::Less, Ordering::Equal) => (Multi::None, offset(&a, b.1)),
         // '.:
-        (Ordering::Less, Ordering::Less, Ordering::Equal) => (Multi::One((a.0.start..b.0.start, a.1)), Multi::One((b.0, a.1 + b.1))),
+        (Ordering::Less, Ordering::Less, Ordering::Equal) => (Multi::One(a.start..b.0.start), offset(&b.0, b.1)),
         // .'.'
         (Ordering::Greater, Ordering::Less, Ordering::Greater) =>
-            (Multi::One((b.0.end..a.0.end, a.1)), Multi::Two((b.0.start..a.0.start, b.1), (a.0.start..b.0.end, a.1 + b.1))),
+            (Multi::One(b.0.end..a.end), offset(&(a.start..b.0.end), b.1)),
         // ''..
         // (Ordering::Less, Ordering::Greater, Ordering::Less) => (vec![a], vec![b]),
         // ':.
         // (Ordering::Less, Ordering::Equal, Ordering::Less) => (vec![a], vec![b]),
         // .''.
-        (Ordering::Greater, Ordering::Less, Ordering::Less) => (Multi::None, Multi::Three((b.0.start..a.0.start, b.1), (a.0.end..b.0.end, b.1), (a.0, a.1 + b.1))),
+        (Ordering::Greater, Ordering::Less, Ordering::Less) => (Multi::None, offset(&(a.end..b.0.end), b.1)),
         // '..'
-        (Ordering::Less, Ordering::Less, Ordering::Greater) => (Multi::Two((a.0.start..b.0.start, a.1), (b.0.end..a.0.end, a.1)), Multi::One((b.0, a.1 + b.1))),
+        (Ordering::Less, Ordering::Less, Ordering::Greater) => (Multi::Two(a.start..b.0.start, b.0.end..a.end), offset(&b.0, b.1)),
         // '.'.
-        (Ordering::Less, Ordering::Less, Ordering::Less) => (Multi::One((a.0.start..b.0.start, a.1)), Multi::Two((b.0.start..a.0.end, a.1 + b.1), (a.0.end..b.0.end, b.1))),
+        (Ordering::Less, Ordering::Less, Ordering::Less) => (Multi::One(a.start..b.0.start), offset(&(b.0.start..a.end), b.1)),
         (o1, o2, o3) =>
-            panic!("Error: Unused combination {} {} {} for {}..{} and {}..{}", fmt(&o1), fmt(&o2), fmt(&o3), a.0.start, a.0.end, b.0.start, b.0.end)
+            panic!("Error: Unused combination {} {} {} for {}..{} and {}..{}", fmt(&o1), fmt(&o2), fmt(&o3), a.start, a.end, b.0.start, b.0.end)
     }
 }
 
-fn intersect_2(a: (Range<i64>, i64), b: (Range<i64>, i64))
-               -> (Multi<(Range<i64>, i64)>, Multi<(Range<i64>, i64)>) {
-    // Just debug function, ignore
-    fn fmt(o: &Ordering) -> char {
-        match o {
-            Ordering::Less => '<',
-            Ordering::Equal => '=',
-            Ordering::Greater => '>'
-        }
-    }
-
-    match (a.0.start.cmp(&b.0.start), b.0.start.cmp(&a.0.end), a.0.end.cmp(&b.0.end)) {
-        // ::
-        (Ordering::Equal, Ordering::Less, Ordering::Equal) => (Multi::None, Multi::One((a.0, a.1 + b.1))),
-        // :.'
-        (Ordering::Equal, Ordering::Less, Ordering::Greater) => (Multi::Two((b.0.end..a.0.end, a.1), (b.0, a.1 + b.1)), Multi::None),
-        // :'.
-        (Ordering::Equal, Ordering::Less, Ordering::Less) => (Multi::One((a.0.clone(), a.1 + b.1)), Multi::One((a.0.end..b.0.end, b.1))),
-        // .':
-        (Ordering::Greater, Ordering::Less, Ordering::Equal) => (Multi::One((a.0.clone(), a.1 + b.1)), Multi::One((b.0.start..a.0.start, b.1))),
-        // '.:
-        (Ordering::Less, Ordering::Less, Ordering::Equal) => (Multi::Two((a.0.start..b.0.start, a.1), (b.0, a.1 + b.1)), Multi::None),
-        // .'.'
-        (Ordering::Greater, Ordering::Less, Ordering::Greater) => (Multi::Two((a.0.start..b.0.end, a.1 + b.1), (b.0.end..a.0.end, a.1)), Multi::One((b.0.start..a.0.start, b.1))),
-        // ''..
-        // (Ordering::Less, Ordering::Greater, Ordering::Less) => (vec![a], vec![b]),
-        // ':.
-        // (Ordering::Less, Ordering::Equal, Ordering::Less) => (vec![a], vec![b]),
-        // .''.
-        (Ordering::Greater, Ordering::Less, Ordering::Less) => (Multi::One((a.0.clone(),a.1+b.1)), Multi::Two((b.0.start..a.0.end, b.1), (a.0.end..b.0.start, b.1))),
-        // '..'
-        (Ordering::Less, Ordering::Less, Ordering::Greater) => (Multi::Three((a.0.start..b.0.end, a.1), (b.0.clone(), a.1 + b.1), (b.0.end..a.0.end, a.1)), Multi::None),
-        // '.'.
-        (Ordering::Less, Ordering::Less, Ordering::Less) => (Multi::Two((a.0.start..b.0.start, a.1), (b.0.start..a.0.end,a.1+b.1)), Multi::One((a.0.end..b.0.end, b.1))),
-        (o1, o2, o3) =>
-            panic!("Error: Unused combination {} {} {} for {}..{} and {}..{}", fmt(&o1), fmt(&o2), fmt(&o3), a.0.start, a.0.end, b.0.start, b.0.end)
-    }
-}
+// fn intersect_2(a: (Range<i64>, i64), b: (Range<i64>, i64))
+//                -> (Multi<(Range<i64>, i64)>, Multi<(Range<i64>, i64)>) {
+//     // Just debug function, ignore
+//     fn fmt(o: &Ordering) -> char {
+//         match o {
+//             Ordering::Less => '<',
+//             Ordering::Equal => '=',
+//             Ordering::Greater => '>'
+//         }
+//     }
+//
+//     match (a.0.start.cmp(&b.0.start), b.0.start.cmp(&a.0.end), a.0.end.cmp(&b.0.end)) {
+//         // ::
+//         (Ordering::Equal, Ordering::Less, Ordering::Equal) => (Multi::None, Multi::One((a.0, a.1 + b.1))),
+//         // :.'
+//         (Ordering::Equal, Ordering::Less, Ordering::Greater) => (Multi::Two((b.0.end..a.0.end, a.1), (b.0, a.1 + b.1)), Multi::None),
+//         // :'.
+//         (Ordering::Equal, Ordering::Less, Ordering::Less) => (Multi::One((a.0.clone(), a.1 + b.1)), Multi::One((a.0.end..b.0.end, b.1))),
+//         // .':
+//         (Ordering::Greater, Ordering::Less, Ordering::Equal) => (Multi::One((a.0.clone(), a.1 + b.1)), Multi::One((b.0.start..a.0.start, b.1))),
+//         // '.:
+//         (Ordering::Less, Ordering::Less, Ordering::Equal) => (Multi::Two((a.0.start..b.0.start, a.1), (b.0, a.1 + b.1)), Multi::None),
+//         // .'.'
+//         (Ordering::Greater, Ordering::Less, Ordering::Greater) => (Multi::Two((a.0.start..b.0.end, a.1 + b.1), (b.0.end..a.0.end, a.1)), Multi::One((b.0.start..a.0.start, b.1))),
+//         // ''..
+//         // (Ordering::Less, Ordering::Greater, Ordering::Less) => (vec![a], vec![b]),
+//         // ':.
+//         // (Ordering::Less, Ordering::Equal, Ordering::Less) => (vec![a], vec![b]),
+//         // .''.
+//         (Ordering::Greater, Ordering::Less, Ordering::Less) => (Multi::One((a.0.clone(),a.1+b.1)), Multi::Two((b.0.start..a.0.end, b.1), (a.0.end..b.0.start, b.1))),
+//         // '..'
+//         (Ordering::Less, Ordering::Less, Ordering::Greater) => (Multi::Three((a.0.start..b.0.end, a.1), (b.0.clone(), a.1 + b.1), (b.0.end..a.0.end, a.1)), Multi::None),
+//         // '.'.
+//         (Ordering::Less, Ordering::Less, Ordering::Less) => (Multi::Two((a.0.start..b.0.start, a.1), (b.0.start..a.0.end,a.1+b.1)), Multi::One((a.0.end..b.0.end, b.1))),
+//         (o1, o2, o3) =>
+//             panic!("Error: Unused combination {} {} {} for {}..{} and {}..{}", fmt(&o1), fmt(&o2), fmt(&o3), a.0.start, a.0.end, b.0.start, b.0.end)
+//     }
+// }
 
 #[derive(Debug)]
 enum Multi<T> {
     None,
     One(T),
     Two(T, T),
-    Three(T, T, T),
+}
+
+impl<T> Multi<T> {
+    pub fn push_to(self, vec: &mut Vec<T>) {
+        match self {
+            Multi::None => {}
+            Multi::One(a) => {vec.push(a)}
+            Multi::Two(a, b) => {vec.push(a); vec.push(b);}
+        }
+    }
 }

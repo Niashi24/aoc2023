@@ -9,6 +9,7 @@ use crate::day3::Day3;
 use crate::day4::Day4;
 use crate::day5::Day5;
 use crate::day6::Day6;
+use crate::day7::Day7;
 
 mod vector;
 mod day;
@@ -18,9 +19,10 @@ mod day3;
 mod day4;
 mod day5;
 mod day6;
+mod day7;
 
 fn main() -> std::io::Result<()> {
-    test_day5()?;
+    test_day7()?;
     Ok(())
 }
 
@@ -93,5 +95,15 @@ fn test_day6() -> std::io::Result<()> {
         "input/day6e.txt",
         (288,71503),
         "input/day6.txt"
+    )
+}
+
+fn test_day7() -> std::io::Result<()> {
+    println!("<--------    Running Day 7    -------->");
+    run_with_test(
+        &Day7,
+        "input/day7e.txt",
+        (6440,5905),
+        "input/day7.txt"
     )
 }
