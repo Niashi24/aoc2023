@@ -57,10 +57,6 @@ impl Day<Data> for Day8 {
     }
 
     fn part_2(&self, data: &Data) -> i64 {
-        let mut a_nodes = data.nodes.iter()
-            .filter(|(cur, _)| cur.0[2] == 'A')
-            .collect::<Vec<_>>();
-
         #[derive(Clone)]
         struct Pos<'a>((&'a Node, &'a (Node, Node)), Cycle<Enumerate<Iter<'a, Direction>>>, usize);
         impl PartialEq for Pos<'_> {
@@ -81,7 +77,8 @@ impl Day<Data> for Day8 {
 
         fn gcd(a: usize, b: usize) -> usize { if b == 0 { a } else { gcd(b, a % b) }}
 
-        a_nodes.clone().into_iter()
+        data.nodes.iter()
+            .filter(|(cur, _)| cur.0[2] == 'A')
             .map(|x| Pos(x, data.directions.iter().enumerate().cycle(), 0))
             .map(|x| brent(x, |x| successor(x, &data.nodes)))
             .map(|(cycle_length, mut cycle_start, cycle_start_index)|

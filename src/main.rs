@@ -1,7 +1,3 @@
-use std::collections::HashMap;
-use std::fs::File;
-use std::io;
-use std::io::BufRead;
 use crate::day1::Day1;
 use crate::day2::Day2;
 use crate::day::{run, run_with_test, run_with_test_2};
