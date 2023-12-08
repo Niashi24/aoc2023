@@ -17,8 +17,9 @@ pub struct Hand([u32; 5], HandType);
 pub enum HandType {Five = 7, Four = 6, Full = 5, Three = 4, Two = 3, One = 2, High = 1}
 
 fn cards_to_type_1(cards: &[u32; 5]) -> HandType {
-    let mut occurances = cards.into_iter()
-        .fold(HashMap::new(), |mut map, value| { *map.entry(value).or_insert(0) += 1; map })
+    let mut occurances = cards.iter()
+        .fold(HashMap::new(), |mut map, value|
+            { *map.entry(value).or_insert(0) += 1; map })
         .into_values().collect::<Vec<_>>();
     occurances.sort();
     occurances.reverse();
@@ -28,9 +29,10 @@ fn cards_to_type_1(cards: &[u32; 5]) -> HandType {
 }
 fn cards_to_type_2(cards: &[u32; 5]) -> HandType {
     let jokers = cards.iter().filter(|x| x == &&JOKER).count() as u32;
-    let mut occurances = cards.into_iter()
+    let mut occurances = cards.iter()
         .filter(|x| x != &&JOKER)
-        .fold(HashMap::new(), |mut map, value| { *map.entry(value).or_insert(0) += 1; map })
+        .fold(HashMap::new(), |mut map, value|
+            { *map.entry(value).or_insert(0) += 1; map })
         .into_values().collect::<Vec<_>>();
     occurances.sort();
     occurances.reverse();
