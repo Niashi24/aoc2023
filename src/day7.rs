@@ -22,18 +22,9 @@ fn cards_to_type_1(cards: &[u32; 5]) -> HandType {
         .into_values().collect::<Vec<_>>();
     occurances.sort();
     occurances.reverse();
-
-    match (occurances.get(0).unwrap_or(&0), occurances.get(1).unwrap_or(&0)) {
-        (5, _) => HandType::Five,
-        (4, _) => HandType::Four,
-        (3, 2) => HandType::Full,
-        (3, 1) => HandType::Three,
-        (2, 2) => HandType::Two,
-        (2, 1) => HandType::One,
-        (1, _) => HandType::High,
-
-        (a, b) => panic!("{} {}", a, b)
-    }
+    
+    top_two_to_type(*occurances.get(0).unwrap_or(&0), 
+                    *occurances.get(1).unwrap_or(&0))
 }
 fn cards_to_type_2(cards: &[u32; 5]) -> HandType {
     let jokers = cards.iter().filter(|x| x == &&JOKER).count() as u32;
@@ -43,22 +34,21 @@ fn cards_to_type_2(cards: &[u32; 5]) -> HandType {
         .into_values().collect::<Vec<_>>();
     occurances.sort();
     occurances.reverse();
+    
+    top_two_to_type(*occurances.get(0).unwrap_or(&0) + jokers, 
+                    *occurances.get(1).unwrap_or(&0))
+}
 
-    match (*occurances.get(0).unwrap_or(&0), *occurances.get(1).unwrap_or(&0), jokers) {
-        (5, _, 0) => HandType::Five,
-        (4, _, 0) => HandType::Four,
-        (3, 2, 0) => HandType::Full,
-        (3, 1, 0) => HandType::Three,
-        (2, 2, 0) => HandType::Two,
-        (2, 1, 0) => HandType::One,
-        (1, _, 0) => HandType::High,
-        (4, _, 1) | (3, _, 2) | (2, _, 3) | (1, _, 4) | (0, _, 5) => HandType::Five,
-        (3, _, 1) | (2, _, 2) | (1, _, 3) => HandType::Four,
-        (2, 2, 1) => HandType::Full,
-        (2, _, 1) | (1, 1, 2) => HandType::Three,
-        // (2, 1, 1) => HandType::Two,  // No reason to ever make this
-        (1, _, 1) => HandType::One,
-        (a, b, j) => panic!("Missed a case lol: {} {} {}", a, b, j)
+fn top_two_to_type(first: u32, second: u32) -> HandType {
+    match (first, second) {
+        (5, _) => HandType::Five,
+        (4, _) => HandType::Four,
+        (3, 2) => HandType::Full,
+        (3, 1) => HandType::Three,
+        (2, 2) => HandType::Two,
+        (2, 1) => HandType::One,
+        (1, _) => HandType::High,
+        (a, b) => panic!("Missed a case lol: {} {}", a, b)
     }
 }
 
