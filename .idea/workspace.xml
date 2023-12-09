@@ -8,6 +8,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="bd499cbf-07cd-4017-a64a-1be3f857a455" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/day9.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/day8.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/day8.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
@@ -34,6 +35,9 @@
   &quot;associatedIndex&quot;: 7
 }</component>
   <component name="ProjectId" id="2ZC7l0NcDaBiRMTcZHOTEg4y2yK" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -44,11 +48,13 @@
     "Cargo.Run aoc2023.executor": "Run",
     "Cargo.Run.executor": "Run",
     "Cargo.Test day5::test_offset.executor": "Run",
+    "Cargo.Test day8::main.executor": "Run",
+    "Cargo.Test day8::test_crthm.executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "master",
     "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "D:/Unity Projects/aoc2023",
+    "last_opened_file_path": "D:/Unity Projects/aoc2023/input",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -58,6 +64,14 @@
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\Unity Projects\aoc2023\input" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\Unity Projects\aoc2023\input" />
+    </key>
+  </component>
   <component name="RunManager" selected="Cargo.Run (Release)">
     <configuration name="Run (Release)" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
       <option name="command" value="run --release" />
@@ -127,14 +141,52 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
+    <configuration name="Test day8::main" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package aoc2023 --bin aoc2023 day8::main -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test day8::test_crthm" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package aoc2023 --bin aoc2023 day8::test_crthm -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
     <list>
       <item itemvalue="Cargo.Run (Release)" />
       <item itemvalue="Cargo.Run" />
+      <item itemvalue="Cargo.Test day8::main" />
+      <item itemvalue="Cargo.Test day8::test_crthm" />
       <item itemvalue="Cargo.Test day5::test_offset" />
       <item itemvalue="Cargo.Run aoc2023" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Cargo.Test day8::main" />
+        <item itemvalue="Cargo.Test day8::test_crthm" />
         <item itemvalue="Cargo.Run aoc2023" />
         <item itemvalue="Cargo.Test day5::test_offset" />
       </list>
@@ -153,7 +205,8 @@
       <updated>1701914356074</updated>
       <workItem from="1701914357151" duration="5453000" />
       <workItem from="1701921254969" duration="12680000" />
-      <workItem from="1702026679503" duration="559000" />
+      <workItem from="1702026679503" duration="917000" />
+      <workItem from="1702061853527" duration="16293000" />
     </task>
     <servers />
   </component>

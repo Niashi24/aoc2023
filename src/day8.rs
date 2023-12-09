@@ -1,5 +1,8 @@
+use std::collections::hash_map::Entry;
 use std::collections::HashMap;
+use std::hash::{Hash, Hasher};
 use std::iter::{Cycle, Enumerate};
+use std::ops::Rem;
 use std::slice::Iter;
 use itertools::FoldWhile::{Continue, Done};
 use itertools::Itertools;
@@ -57,45 +60,42 @@ impl Day<Data> for Day8 {
     }
 
     fn part_2(&self, data: &Data) -> i64 {
-        #[derive(Clone)]
-        struct Pos<'a>((&'a Node, &'a (Node, Node)), Cycle<Enumerate<Iter<'a, Direction>>>, usize);
-        impl PartialEq for Pos<'_> {
-            fn eq(&self, other: &Self) -> bool {
-                self.0 == other.0 && self.2 == other.2
-            }
-        }
+        #[derive(Eq, PartialEq, Hash, Clone)]
+        struct Pos<'a>((&'a Node, &'a (Node, Node)), usize);
 
-        fn successor<'a>(pos: Pos<'a>, nodes: &'a HashMap<Node, (Node, Node)>) -> Pos<'a> {
-            let Pos(cur, mut dir, _) = pos;
-            let (index, d) = dir.next().unwrap();
-            let next = match d {
+        fn successor<'a>(pos: Pos<'a>, nodes: &'a HashMap<Node, (Node, Node)>, directions: &'a Vec<Direction>) -> Pos<'a> {
+            let Pos(cur, i) = pos;
+            let dir = directions.get(i).unwrap();
+            let next = match dir {
                 Direction::Left => &cur.1.0,
                 Direction::Right => &cur.1.1
             };
-            Pos((next, nodes.get(next).unwrap()), dir, index)
+            Pos((next, nodes.get(next).unwrap()), (i+1).rem(directions.len()))
         }
 
         fn gcd(a: usize, b: usize) -> usize { if b == 0 { a } else { gcd(b, a % b) }}
 
         data.nodes.iter()
             .filter(|(cur, _)| cur.0[2] == 'A')
-            .map(|x| Pos(x, data.directions.iter().enumerate().cycle(), 0))
-            .map(|x| brent(x, |x| successor(x, &data.nodes)))
+            .map(|x| Pos(x, 0))
+            .map(|x| brent(x, |x| successor(x, &data.nodes, &data.directions)))
             .map(|(cycle_length, mut cycle_start, cycle_start_index)|
                 (cycle_start_index..cycle_start_index + cycle_length)
                     .fold((cycle_start, vec![]), |(n, mut zs), i| {
                     if n.0.0.0[2] == 'Z' {
-                        zs.push((n.2, i));
+                        zs.push((cycle_length, (n.1, i)));
                     }
-                    (successor(n, &data.nodes), zs)
+                    (successor(n, &data.nodes, &data.directions), zs)
                 }).1
             ).reduce(|mut x, mut y| {
-                x.retain(|(x, _)| y.iter().any(|(y,_)| x == y));
-                y.retain(|(y, _)| x.iter().any(|(x, _)| x == y));
+                x.retain(|(_, (x, _))| y.iter().any(|(_, (y, _))| x == y));
+                y.retain(|(_, (y, _))| x.iter().any(|(_, (x, _))| x == y));
                 x.append(&mut y);
                 x
             }).unwrap().into_iter()
-            .map(|x| x.1)
+            // map to index where it lands on the Z
+            .map(|x| x.1.1)
+            // get lcm of
             .reduce(|x, y| x * y / gcd(x, y)).unwrap() as i64
     }
 }
