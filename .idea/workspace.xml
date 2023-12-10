@@ -8,10 +8,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="bd499cbf-07cd-4017-a64a-1be3f857a455" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/day10.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/day9.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/day9.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -74,7 +73,7 @@
       <recent name="D:\Unity Projects\aoc2023\input" />
     </key>
   </component>
-  <component name="RunManager" selected="Cargo.Run (Release)">
+  <component name="RunManager" selected="Cargo.Run">
     <configuration name="Run (Release)" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
       <option name="command" value="run --release" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -228,11 +227,18 @@
       <workItem from="1701921254969" duration="12680000" />
       <workItem from="1702026679503" duration="917000" />
       <workItem from="1702061853527" duration="22345000" />
-      <workItem from="1702147810171" duration="5461000" />
+      <workItem from="1702147810171" duration="19220000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="XDebuggerManager">
+    <watches-manager>
+      <configuration name="CargoCommandRunConfiguration">
+        <watch expression="filled" />
+      </configuration>
+    </watches-manager>
   </component>
 </project>
