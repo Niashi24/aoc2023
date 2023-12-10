@@ -1,3 +1,5 @@
+use std::cell::Cell;
+use itertools::Itertools;
 use crate::day::Day;
 
 pub struct Day9;
@@ -18,36 +20,33 @@ impl Day<Data> for Day9 {
     fn part_1(&self, data: &Data) -> i64 {
         data.histories.iter().map(|x| {
             let mut cur_values = x.clone();
-            let mut last_values = vec![*cur_values.last().unwrap()];
-            let mut difs = cur_values.windows(2).into_iter()
-                .map(|n| n[1] - n[0] )
-                .collect::<Vec<_>>();
-            while difs.iter().any(|x| x != &0) {
-                last_values.push(*difs.last().unwrap());
-                difs = difs.windows(2).into_iter()
-                    .map(|n| n[1] - n[0] )
-                    .collect::<Vec<_>>();
+            let mut sum = 0;
+            while !cur_values.iter().all_equal() {
+                take_differences(&mut cur_values);
+                sum += cur_values.pop().unwrap();
             }
-
-            last_values.into_iter().sum::<i64>()
-        }).sum()
+            sum + cur_values.pop().unwrap()
+        }).sum::<i64>()
     }
 
     fn part_2(&self, data: &Data) -> i64 {
         data.histories.iter().map(|x| {
             let mut cur_values = x.clone();
-            let mut first_values = vec![*cur_values.first().unwrap()];
-            let mut difs = cur_values.windows(2).into_iter()
-                .map(|n| n[1] - n[0] )
-                .collect::<Vec<_>>();
-            while difs.iter().any(|x| x != &0) {
-                first_values.push(*difs.first().unwrap());
-                difs = difs.windows(2).into_iter()
-                    .map(|n| n[1] - n[0] )
-                    .collect::<Vec<_>>();
+            cur_values.reverse();
+            let mut sum = 0;
+            while !cur_values.iter().all_equal() {
+                take_differences(&mut cur_values);
+                sum += cur_values.pop().unwrap();
             }
-
-            first_values.into_iter().rev().reduce(|a, b| b - a).unwrap()
+            sum + cur_values.pop().unwrap()
         }).sum()
     }
+}
+
+#[inline]
+fn take_differences(vec: &mut Vec<i64>) {
+    Cell::from_mut(&mut vec[..])
+        .as_slice_of_cells()
+        .windows(2)
+        .for_each(|x| x[0].set(x[1].get() - x[0].get()));
 }

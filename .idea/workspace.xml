@@ -8,10 +8,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="bd499cbf-07cd-4017-a64a-1be3f857a455" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/day9.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/day8.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/day8.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/day9.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/day9.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,6 +50,7 @@
     "Cargo.Test day5::test_offset.executor": "Run",
     "Cargo.Test day8::main.executor": "Run",
     "Cargo.Test day8::test_crthm.executor": "Run",
+    "Cargo.Test day9::test_eval.executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "master",
@@ -59,6 +60,7 @@
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
     "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
     "settings.editor.selected.configurable": "preferences.lookFeel",
     "vue.rearranger.settings.migration": "true"
@@ -175,16 +177,35 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
+    <configuration name="Test day9::test_eval" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package aoc2023 --bin aoc2023 day9::test_eval -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
     <list>
       <item itemvalue="Cargo.Run (Release)" />
       <item itemvalue="Cargo.Run" />
       <item itemvalue="Cargo.Test day8::main" />
       <item itemvalue="Cargo.Test day8::test_crthm" />
+      <item itemvalue="Cargo.Test day9::test_eval" />
       <item itemvalue="Cargo.Test day5::test_offset" />
       <item itemvalue="Cargo.Run aoc2023" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Cargo.Test day9::test_eval" />
         <item itemvalue="Cargo.Test day8::main" />
         <item itemvalue="Cargo.Test day8::test_crthm" />
         <item itemvalue="Cargo.Run aoc2023" />
@@ -206,7 +227,8 @@
       <workItem from="1701914357151" duration="5453000" />
       <workItem from="1701921254969" duration="12680000" />
       <workItem from="1702026679503" duration="917000" />
-      <workItem from="1702061853527" duration="16293000" />
+      <workItem from="1702061853527" duration="22345000" />
+      <workItem from="1702147810171" duration="5461000" />
     </task>
     <servers />
   </component>
