@@ -36,7 +36,7 @@ fn solve(galaxies: &Vec<(usize, usize)>, multiplier: usize) -> i64 {
     let ys = (0..my)
         .filter(|i| !galaxies.iter().any(|(_, y)| y == i))
         .collect::<Vec<_>>();
-    let new_stars = galaxies.iter().cloned().map(|(x, y)| {
+    let new_stars = galaxies.iter().map(|(x, y)| {
         (x + multiplier * xs.iter().filter(|i| &x > i).count(),
          y + multiplier * ys.iter().filter(|i| &y > i).count())
     }).collect::<Vec<_>>();
