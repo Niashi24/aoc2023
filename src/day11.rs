@@ -37,8 +37,8 @@ fn solve(galaxies: &Vec<(usize, usize)>, multiplier: usize) -> i64 {
         .filter(|i| !galaxies.iter().any(|(_, y)| y == i))
         .collect::<Vec<_>>();
     let new_stars = galaxies.iter().map(|(x, y)| {
-        (x + multiplier * xs.iter().filter(|i| &x > i).count(),
-         y + multiplier * ys.iter().filter(|i| &y > i).count())
+        (x + multiplier * xs.iter().position(|i| x < i).unwrap_or(xs.len()),
+         y + multiplier * ys.iter().position(|i| y < i).unwrap_or(ys.len()))
     }).collect::<Vec<_>>();
 
     // iterate through pairs and get total manhattan distance
