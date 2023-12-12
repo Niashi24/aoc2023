@@ -24,6 +24,7 @@ mod day8;
 mod day9;
 mod day10;
 mod day11;
+mod combinations;
 
 fn main() -> std::io::Result<()> {
     test_day11()?;
