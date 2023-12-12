@@ -41,8 +41,10 @@ fn solve(galaxies: &Vec<(usize, usize)>, multiplier: usize) -> i64 {
          y + multiplier * ys.iter().filter(|i| &y > i).count())
     }).collect::<Vec<_>>();
 
-    new_stars.iter().map(|(ax, ay)| new_stars.iter()
+    // iterate through pairs and get total manhattan distance
+    new_stars.iter().enumerate().map(|(i, (ax, ay))| new_stars.iter()
+        .skip(i + 1)
         .map(|(bx, by)| bx.abs_diff(*ax) + by.abs_diff(*ay))
         .sum::<usize>())
-        .sum::<usize>() as i64 / 2
+        .sum::<usize>() as i64
 }

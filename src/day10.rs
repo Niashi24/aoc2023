@@ -25,10 +25,7 @@ impl Day<Data> for Day10 {
 
         let start = Pos(transform((x, y), &s_dirs.0), s_dirs.0.clone());
 
-        bfs(&start,
-            |p| [successor(p.clone(), &data.grid)],
-            |p| p.0 == (x, y)
-        ).unwrap().len() as i64 / 2
+        get_full_path_length(start, &(x, y), |x| successor(x, &data.grid)) as i64 / 2
 
         // length as i64 / 2
     }
@@ -41,10 +38,7 @@ impl Day<Data> for Day10 {
 
         let start = Pos(transform((x, y), &s_dirs.0), s_dirs.0.clone());
 
-        let path = bfs(&start,
-            |p| [successor(p.clone(), &data.grid)],
-            |p| p.0 == (x, y)
-        ).unwrap();
+        let path = get_full_path(start, &(x, y), |x| successor(x, &data.grid));
 
         let path_set = path.iter().map(|Pos(pos, _)| pos.clone())
             .collect::<HashSet<_>>();
@@ -55,10 +49,10 @@ impl Day<Data> for Day10 {
                 (Direction::South, Direction::West) => 1,
                 (Direction::East, Direction::South) => 1,
                 (Direction::West, Direction::North) => 1,
-                (Direction::North, Direction::West) => -1,
+                (Direction::North, Direction::West) => -1, // left turn
                 (Direction::South, Direction::East) => -1,
                 (Direction::East, Direction::North) => -1,
-                (Direction::West, Direction::South) => -1, // left turn
+                (Direction::West, Direction::South) => -1,
                 (_, _) => 0
             }
         }).sum::<i64>();
@@ -123,7 +117,26 @@ fn get_start_neighbors(x: usize, y: usize, grid: &Vec<Vec<char>>) -> (Direction,
         }).next_tuple().unwrap()
 }
 
+fn get_full_path_length<FN: Fn(Pos) -> Pos>(start: Pos, end: &(usize, usize), successor: FN) -> usize {
+    let mut count = 0;
+    let mut cur = start;
+    while &cur.0 != end {
+        count += 1;
+        cur = successor(cur);
+    }
+    count + 1
+}
 
+fn get_full_path<FN: Fn(Pos) -> Pos>(start: Pos, end: &(usize, usize), successor: FN) -> Vec<Pos> {
+    let mut count = Vec::new();
+    let mut cur = start;
+    while &cur.0 != end {
+        count.push(cur.clone());
+        cur = successor(cur);
+    }
+    count.push(cur);
+    count
+}
 
 #[derive(Clone, Eq, PartialEq, Hash)]
 #[derive(Debug)]
