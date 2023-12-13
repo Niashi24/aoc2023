@@ -162,7 +162,7 @@ fn test_day12() -> std::io::Result<()> {
     run_with_test(
         &Day12,
         "input/day12e.txt",
-        (21,0),
+        (21,525152),
         "input/day12.txt"
     )
 }
