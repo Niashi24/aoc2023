@@ -153,5 +153,6 @@ fn test_2<IT>(mut it: IT, grid: &Vec<Vec<bool>>) -> bool
     it.filter(|((x1, y1), (x2, y2))| {
         grid.get(*y1).unwrap().get(*x1).unwrap() !=
             grid.get(*y2).unwrap().get(*x2).unwrap()
-    }).count() == 1
+    }).take(2) // stop when count > 1
+        .count() == 1
 }
