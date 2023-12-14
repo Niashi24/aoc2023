@@ -31,7 +31,7 @@ mod day12;
 mod day13;
 
 fn main() -> std::io::Result<()> {
-    test_day13()?;
+    test_day12()?;
     Ok(())
 }
 

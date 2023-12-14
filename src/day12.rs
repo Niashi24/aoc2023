@@ -43,7 +43,7 @@ impl Day<Data> for Day12 {
                         '.' => Tile::Known(false),
                         '#' => Tile::Known(true),
                         '?' => Tile::Unknown,
-                        x => panic!("{x}")
+                        _ => panic!("{x}")
                     }).collect(),
                     hints: hints.split(",")
                         .map(|x| x.parse().unwrap())
@@ -71,32 +71,12 @@ fn create_matches(game: &Game) -> i64 {
     get_num_solutions(&game) as i64
 }
 
-fn spaces_to_tiles(n: usize, hint: &Vec<usize>, spaces: &Vec<Vec<usize>>) -> Vec<Vec<bool>> {
-    let mut tiles = Vec::new();
-    for seq in spaces.iter() {
-        let mut result = Vec::new();
-
-        for (index, space) in seq.iter().enumerate() {
-            result.extend(std::iter::repeat(false).take(*space));
-            if let Some(hint) = hint.get(index) {
-                result.extend(std::iter::repeat(true).take(*hint));
-            }
-        }
-
-        tiles.push(result);
-    }
-
-    tiles
-}
-
 fn get_num_solutions(game: &Game) -> usize {
     let mut current_sequence = Vec::new();
     let sum = game.tiles.len() - game.hints.iter().sum::<usize>();
     let mut memo = HashMap::new();
-
-    let i = generate_solutions_recursive(game, &mut current_sequence, 0, sum, &mut memo);
-
-    i
+    
+    generate_solutions_recursive(game, &mut current_sequence, 0, sum, &mut memo)
 }
 
 fn generate_solutions_recursive(
