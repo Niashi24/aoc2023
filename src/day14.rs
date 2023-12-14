@@ -6,148 +6,174 @@ use crate::day::Day;
 pub struct Day14;
 
 pub struct Data {
-    rounded: Vec<(usize, usize)>,
-    cube: HashSet<(usize, usize)>,
+    grid: Vec<Vec<Tile>>,
     w: usize,
     h: usize,
+}
+
+#[derive(Clone, Eq, PartialEq)]
+pub enum Tile {
+    Empty,
+    Round,
+    Cube,
+}
+
+impl Tile {
+    pub fn filled(&self) -> bool {
+        match self {
+            Tile::Empty => false,
+            _ => true
+        }
+    }
 }
 
 impl Day<Data> for Day14 {
     fn parse_file(&self, file_content: String) -> Data {
         Data {
-            rounded: file_content.lines().enumerate()
-                .flat_map(|(y, s)| s.chars().enumerate().filter_map(move |(x, c)| {
-                    if c == 'O' { Some((x, y)) } else { None }
-                })).collect(),
-            cube: file_content.lines().enumerate()
-                .flat_map(|(y, s)| s.chars().enumerate().filter_map(move |(x, c)| {
-                    if c == '#' { Some((x, y)) } else { None }
-                })).collect(),
+            grid: file_content.lines().map(|s| s.chars()
+                .map(|c| {
+                    match c {
+                        '.' => Tile::Empty,
+                        'O' => Tile::Round,
+                        '#' => Tile::Cube,
+                        x => panic!("{x}")
+                    }
+                }).collect()).collect(),
             h: file_content.lines().count(),
             w: file_content.lines().next().unwrap().chars().count()
         }
     }
 
     fn part_1(&self, data: &Data) -> i64 {
-        let mut round = data.rounded.clone();
-
-        slide_up(&mut round, &data);
-
-        round.into_iter().map(|(_, y)| data.h - y).sum::<usize>() as i64
+        let mut grid = data.grid.clone();
+        slide_up(&mut grid, &data);
+        grid_score(&grid) as i64
     }
 
     fn part_2(&self, data: &Data) -> i64 {
-        let mut round = data.rounded.clone();
-        // for i in 0..100000 {
-        //     println!("{}: {}", i, round.iter().map(|(_, y)| data.h - y).sum::<usize>());
-        //     round = cycle(round, data);
-        // }
-        let (l, _, s) = brent(data.rounded.clone(), |round| cycle(round, &data));
-        // dbg!(l, s)
-
+        let (l, _, s) = brent(data.grid.clone(), |round| cycle(round, &data));
         const CYCLES: usize = 1_000_000_000;
         let i = (CYCLES - s) % l + s;
-        dbg!(i);
-        let mut round = data.rounded.clone();
+        let mut grid = data.grid.clone();
         for _ in 0..i {
-            round = cycle(round, data);
+            grid = cycle(grid, data);
         }
-
-        round.into_iter().map(|(_, y)| data.h - y).sum::<usize>() as i64
+        grid_score(&grid) as i64
     }
 }
 
-fn print_board(rounded: &Vec<(usize, usize)>, data: &Data) {
-    for y in 0..data.h {
-        for x in 0..data.w {
-            if rounded.contains(&(x, y)) {
-                print!("O");
-            } else if data.cube.contains(&(x, y)) {
-                print!("#");
-            } else {
-                print!(".");
-            }
+fn print_grid(grid: &Vec<Vec<Tile>>) {
+    for y in grid.iter() {
+        for x in y.iter() {
+            print!("{}", match x {
+                Tile::Empty => '.',
+                Tile::Round => 'O',
+                Tile::Cube => '#'
+            });
         }
         println!();
     }
     println!();
 }
 
-static mut count: usize = 0;
-
-fn cycle(mut rounded: Vec<(usize, usize)>, data: &Data) -> Vec<(usize, usize)> {
-    slide_up(&mut rounded, data);
-    slide_left(&mut rounded, data);
-    slide_down(&mut rounded, data);
-    slide_right(&mut rounded, data);
-    unsafe {
-        count += 1;
-        println!("{count}");
-    }
-    rounded
-}
-
-fn slide_up(rounded: &mut Vec<(usize, usize)>, data: &Data) {
-    rounded.sort_unstable_by_key(|x| x.1);
-    for i in 0..rounded.len() {
-        let mut pos = rounded.get(i).unwrap().clone();
-        while pos.1 != 0 {
-            pos.1 -= 1;
-            if rounded.contains(&pos) || data.cube.contains(&pos) {
-                pos.1 += 1;
-                break;
+fn grid_score(grid: &Vec<Vec<Tile>>) -> usize {
+    let h = grid.len();
+    let mut sum = 0;
+    for (i, y) in grid.iter().enumerate() {
+        for x in y.iter() {
+            if x == &Tile::Round {
+                sum += h - i;
             }
         }
-
-        *rounded.get_mut(i).unwrap() = pos;
     }
+    sum
 }
 
-fn slide_down(rounded: &mut Vec<(usize, usize)>, data: &Data) {
-    rounded.sort_unstable_by_key(|x| data.h - x.1);
-    for i in 0..rounded.len() {
-        let mut pos = rounded.get(i).unwrap().clone();
+fn cycle(mut grid: Vec<Vec<Tile>>, data: &Data) -> Vec<Vec<Tile>> {
+    slide_up(&mut grid, data);
+    slide_left(&mut grid, data);
+    slide_down(&mut grid, data);
+    slide_right(&mut grid, data);
 
-        while pos.1 + 1 != data.h {
-            pos.1 += 1;
-            if rounded.contains(&pos) || data.cube.contains(&pos) {
-                pos.1 -= 1;
-                break;
+    grid
+}
+
+fn slide_up(grid: &mut Vec<Vec<Tile>>, data: &Data) {
+    for y in 0..data.h {
+        for x in 0..data.w {
+            if grid.get(y).unwrap().get(x).unwrap() == &Tile::Round {
+                *grid.get_mut(y).unwrap().get_mut(x).unwrap() = Tile::Empty;
+                let mut i = y;
+                while i != 0 {
+                    i -= 1;
+                    if grid.get(i).unwrap().get(x).unwrap().filled() {
+                        i += 1;
+                        break;
+                    }
+                }
+
+                *grid.get_mut(i).unwrap().get_mut(x).unwrap() = Tile::Round;
             }
         }
-
-        *rounded.get_mut(i).unwrap() = pos;
     }
 }
 
-fn slide_left(rounded: &mut Vec<(usize, usize)>, data: &Data) {
-    rounded.sort_unstable_by_key(|x| x.0);
-    for i in 0..rounded.len() {
-        let mut pos = rounded.get(i).unwrap().clone();
-        while pos.0 != 0 {
-            pos.0 -= 1;
-            if rounded.contains(&pos) || data.cube.contains(&pos) {
-                pos.0 += 1;
-                break;
+fn slide_down(grid: &mut Vec<Vec<Tile>>, data: &Data) {
+    for y in (0..data.h).rev() {
+        for x in 0..data.w {
+            if grid.get(y).unwrap().get(x).unwrap() == &Tile::Round {
+                *grid.get_mut(y).unwrap().get_mut(x).unwrap() = Tile::Empty;
+                let mut i = y;
+                while i + 1 != data.h {
+                    i += 1;
+                    if grid.get(i).unwrap().get(x).unwrap().filled() {
+                        i -= 1;
+                        break;
+                    }
+                }
+
+                *grid.get_mut(i).unwrap().get_mut(x).unwrap() = Tile::Round;
             }
         }
-
-        *rounded.get_mut(i).unwrap() = pos;
     }
 }
 
-fn slide_right(rounded: &mut Vec<(usize, usize)>, data: &Data) {
-    rounded.sort_unstable_by_key(|x| data.w - x.0);
-    for i in 0..rounded.len() {
-        let mut pos = rounded.get(i).unwrap().clone();
-        while pos.0 + 1 != data.w {
-            pos.0 += 1;
-            if rounded.contains(&pos) || data.cube.contains(&pos) {
-                pos.0 -= 1;
-                break;
+fn slide_left(grid: &mut Vec<Vec<Tile>>, data: &Data) {
+    for y in 0..data.h {
+        for x in 0..data.w {
+            if grid.get(y).unwrap().get(x).unwrap() == &Tile::Round {
+                *grid.get_mut(y).unwrap().get_mut(x).unwrap() = Tile::Empty;
+                let mut i = x;
+                while i != 0 {
+                    i -= 1;
+                    if grid.get(y).unwrap().get(i).unwrap().filled() {
+                        i += 1;
+                        break;
+                    }
+                }
+
+                *grid.get_mut(y).unwrap().get_mut(i).unwrap() = Tile::Round;
             }
         }
+    }
+}
 
-        *rounded.get_mut(i).unwrap() = pos;
+fn slide_right(grid: &mut Vec<Vec<Tile>>, data: &Data) {
+    for y in 0..data.h {
+        for x in (0..data.w).rev() {
+            if grid.get(y).unwrap().get(x).unwrap() == &Tile::Round {
+                *grid.get_mut(y).unwrap().get_mut(x).unwrap() = Tile::Empty;
+                let mut i = x;
+                while i + 1 != data.w {
+                    i += 1;
+                    if grid.get(y).unwrap().get(i).unwrap().filled() {
+                        i -= 1;
+                        break;
+                    }
+                }
+
+                *grid.get_mut(y).unwrap().get_mut(i).unwrap() = Tile::Round;
+            }
+        }
     }
 }
