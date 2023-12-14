@@ -30,12 +30,12 @@ impl Day<Data> for Day13 {
         data.grids.iter().map(|grid| {
             let (w, h) = (grid.get(0).unwrap().len(), grid.len());
             if let Some(r) = (1..h)
-                .find(|&i| test(RowIterator::new(i, w, h), grid)) {
+                .find(|&i| test_1(RowIterator::new(i, w, h), grid)) {
                 return (r as i64) * 100;
             }
 
             let c =(1..w)
-                .find(|&i| test(ColumnIterator::new(i, w, h), grid))
+                .find(|&i| test_1(ColumnIterator::new(i, w, h), grid))
                 .unwrap() as i64;
             c
         }).sum::<i64>()
@@ -136,7 +136,7 @@ impl ColumnIterator {
     }
 }
 
-fn test<IT>(mut it: IT, grid: &Vec<Vec<bool>>) -> bool
+fn test_1<IT>(mut it: IT, grid: &Vec<Vec<bool>>) -> bool
 where
     IT: Iterator<Item = ((usize, usize), (usize, usize))>
 {
