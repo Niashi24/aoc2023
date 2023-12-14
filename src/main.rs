@@ -33,7 +33,7 @@ mod day13;
 mod day14;
 
 fn main() -> std::io::Result<()> {
-    test_day12()?;
+    test_day14()?;
     Ok(())
 }
 
@@ -186,7 +186,7 @@ fn test_day14() -> std::io::Result<()> {
     run_with_test(
         &Day14,
         "input/day14e.txt",
-        (136,0),
+        (136,64),
         "input/day14.txt"
     )
 }
