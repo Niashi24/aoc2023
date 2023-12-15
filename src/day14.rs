@@ -52,11 +52,10 @@ impl Day<Data> for Day14 {
 
     fn part_2(&self, data: &Data) -> i64 {
         // get length and start index of cycle using brent's
-        let (l, _, s) = brent(data.grid.clone(), |round| cycle(round, &data));
+        let (l, mut grid, s) = brent(data.grid.clone(), |round| cycle(round, &data));
         const CYCLES: usize = 1_000_000_000;
-        let i = (CYCLES - s) % l + s;
+        let i = (CYCLES - s) % l;
         // advance grid 'i' cycles
-        let mut grid = data.grid.clone();
         for _ in 0..i {
             grid = cycle(grid, data);
         }
