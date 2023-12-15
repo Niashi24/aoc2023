@@ -40,7 +40,7 @@ impl Day<Data> for Day14 {
                     }
                 }).collect()).collect(),
             h: file_content.lines().count(),
-            w: file_content.lines().next().unwrap().chars().count()
+            w: file_content.lines().next().unwrap().chars().count(),
         }
     }
 
@@ -51,8 +51,9 @@ impl Day<Data> for Day14 {
     }
 
     fn part_2(&self, data: &Data) -> i64 {
-        // get length and start index of cycle using brent's
-        let (l, mut grid, s) = brent(data.grid.clone(), |round| cycle(round, &data));
+        // get cycle length, cycle start node, and cycle start index using brent's
+        let (l, mut grid, s) =
+            brent(data.grid.clone(), |round| cycle(round, &data));
         const CYCLES: usize = 1_000_000_000;
         let i = (CYCLES - s) % l;
         // advance grid 'i' cycles
