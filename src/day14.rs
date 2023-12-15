@@ -1,5 +1,4 @@
-﻿use std::collections::HashSet;
-use std::hash::Hash;
+﻿use std::hash::Hash;
 use pathfinding::prelude::brent;
 use crate::day::Day;
 
@@ -36,7 +35,7 @@ impl Day<Data> for Day14 {
                         '.' => Tile::Empty,
                         'O' => Tile::Round,
                         '#' => Tile::Cube,
-                        x => panic!("{x}")
+                        _ => panic!("{c}")
                     }
                 }).collect()).collect(),
             h: file_content.lines().count(),
