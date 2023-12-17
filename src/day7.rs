@@ -95,8 +95,8 @@ impl Day<Data> for Day7 {
         hands.into_iter()
             .map(|(_, b)| b)
             .enumerate()
-            .map(|(i, b)| (i + 1) as u32 * b)
-            .sum::<u32>() as i64
+            .map(|(i, b)| (i + 1) as i64 * b as i64)
+            .sum::<i64>() as i64
     }
 
     fn part_2(&self, data: &Data) -> i64 {
@@ -117,7 +117,7 @@ impl Day<Data> for Day7 {
         hands.into_iter()
             .map(|(_, b)| b)
             .enumerate()
-            .map(|(i, b)| (i + 1) as u32 * b)
-            .sum::<u32>() as i64
+            .map(|(i, b)| (i + 1) as i64 * b as i64)
+            .sum::<i64>() as i64
     }
 }
