@@ -23,7 +23,7 @@ impl Day<Data> for Day10 {
         // get connections of start node
         let s_dirs = get_start_neighbors(x, y, &data.grid);
 
-        let start = Pos(transform((x, y), &s_dirs.0), s_dirs.0.clone());
+        let start = Pos(s_dirs.0.transform((x, y)), s_dirs.0.clone());
 
         get_full_path_length(start, &(x, y), |x| successor(x, &data.grid)) as i64 / 2
 
@@ -36,7 +36,7 @@ impl Day<Data> for Day10 {
         // get connections of start node
         let s_dirs = get_start_neighbors(x, y, &data.grid);
 
-        let start = Pos(transform((x, y), &s_dirs.0), s_dirs.0.clone());
+        let start = Pos(s_dirs.0.transform((x, y)), s_dirs.0.clone());
 
         let path = get_full_path(start, &(x, y), |x| successor(x, &data.grid));
 
@@ -71,7 +71,7 @@ impl Day<Data> for Day10 {
                 filled.insert(p);
 
                 DIRECTIONS.iter()
-                    .map(|d| transform(p, d))
+                    .map(|d| d.transform(p))
                     .filter(|x| x_range.contains(&x.0) && y_range.contains(&x.1)
                         && !border.contains(&x) && !filled.contains(&x))
                     .for_each(|x| to_visit.push(x));
@@ -85,8 +85,8 @@ impl Day<Data> for Day10 {
                                                          y_range: &Range<usize>,
                                                          dir_search: FN) {
             for Pos(pos, dir) in path {
-                let left = transform(pos.clone(), &dir_search(dir));
-                let back_left = transform(left, &opposite_dir(dir));
+                let left = dir_search(dir).transform(pos.clone());
+                let back_left = dir.opposite_dir().transform(left);
                 flood_fill(left, path_set, filled, x_range, y_range);
                 flood_fill(back_left, path_set, filled, x_range, y_range);
             }
@@ -95,9 +95,9 @@ impl Day<Data> for Day10 {
         let mut filled = HashSet::<(usize, usize)>::new();
 
         if orientation < 0 {
-            flood_search(&path, &path_set, &mut filled, &x_range, &y_range, rotate_90_anticlockwise);
+            flood_search(&path, &path_set, &mut filled, &x_range, &y_range, Direction::rotate_90_anticlockwise);
         } else {
-            flood_search(&path, &path_set, &mut filled, &x_range, &y_range, rotate_90_clockwise);
+            flood_search(&path, &path_set, &mut filled, &x_range, &y_range, Direction::rotate_90_clockwise);
         }
 
         filled.len() as i64
@@ -107,10 +107,10 @@ impl Day<Data> for Day10 {
 fn get_start_neighbors(x: usize, y: usize, grid: &Vec<Vec<char>>) -> (Direction, Direction) {
     DIRECTIONS.into_iter()
         .filter(|d| {
-            let (x, y) = transform((x, y), d);
+            let (x, y) = d.transform((x, y));
             let c = grid.get(y).unwrap().get(x).unwrap();
             if let Some((d1, d2)) = pipe_to_connections(*c) {
-                &opposite_dir(&d1) == d || &opposite_dir(&d2) == d
+                &d1.opposite_dir() == d || &d2.opposite_dir() == d
             } else {
                 false
             }
@@ -157,55 +157,76 @@ fn get_grid(pos: &(usize, usize), grid: &Vec<Vec<char>>) -> char {
 fn successor(pos: Pos, grid: &Vec<Vec<char>>) -> Pos {
     let (d1, d2) = pipe_to_connections(get_grid(&pos.0, grid)).unwrap();
 
-    let new_dir = if &opposite_dir(&d1) != &pos.1 {
+    let new_dir = if &d1.opposite_dir() != &pos.1 {
         d1
     } else {
         d2
     };
 
-    Pos(transform(pos.0, &new_dir), new_dir)
+    Pos(new_dir.transform(pos.0), new_dir)
 }
 
 #[derive(Eq, PartialEq)]
 #[derive(Debug)]
 #[derive(Clone)]
 #[derive(Hash)]
-enum Direction {North, South, West, East}
+pub enum Direction {North, South, West, East}
 const DIRECTIONS: [Direction; 4] = [Direction::North, Direction::South, Direction::East, Direction::West];
-fn transform(pos: (usize, usize), direction: &Direction) -> (usize, usize) {
-    let (x, y) = pos;
-    match direction {
-        Direction::North => (x, y.saturating_sub(1)),
-        Direction::South => (x, y + 1),
-        Direction::West => (x.saturating_sub(1), y),
-        Direction::East => (x + 1, y)
-    }
-}
 
-fn opposite_dir(direction: &Direction) -> Direction {
-    match direction {
-        Direction::North => Direction::South,
-        Direction::South => Direction::North,
-        Direction::West => Direction::East,
-        Direction::East => Direction::West
+impl Direction {
+    pub(crate) fn transform(&self, pos: (usize, usize)) -> (usize, usize) {
+        let (x, y) = pos;
+        match self {
+            Direction::North => (x, y.saturating_sub(1)),
+            Direction::South => (x, y + 1),
+            Direction::West => (x.saturating_sub(1), y),
+            Direction::East => (x + 1, y)
+        }
     }
-}
-
-fn rotate_90_anticlockwise(direction: &Direction) -> Direction {
-    match direction {
-        Direction::North => Direction::West,
-        Direction::South => Direction::East,
-        Direction::West => Direction::South,
-        Direction::East => Direction::North
+    pub(crate) fn transform_i(&self, pos: (i64, i64)) -> (i64, i64) {
+        let (x, y) = pos;
+        match self {
+            Direction::North => (x, y - 1),
+            Direction::South => (x, y + 1),
+            Direction::West => (x - 1, y),
+            Direction::East => (x + 1, y)
+        }
     }
-}
+    
+    pub(crate) fn unit_i(&self, length: i64) -> (i64, i64) {
+        match self {
+            Direction::North => (0, -length),
+            Direction::South => (0, length),
+            Direction::West => (-length, 0),
+            Direction::East => (length, 0)
+        }
+    }
 
-fn rotate_90_clockwise(direction: &Direction) -> Direction {
-    match direction {
-        Direction::North => Direction::East,
-        Direction::South => Direction::West,
-        Direction::West => Direction::North,
-        Direction::East => Direction::South
+    fn opposite_dir(&self) -> Direction {
+        match self {
+            Direction::North => Direction::South,
+            Direction::South => Direction::North,
+            Direction::West => Direction::East,
+            Direction::East => Direction::West
+        }
+    }
+
+    fn rotate_90_anticlockwise(&self) -> Direction {
+        match self {
+            Direction::North => Direction::West,
+            Direction::South => Direction::East,
+            Direction::West => Direction::South,
+            Direction::East => Direction::North
+        }
+    }
+
+    fn rotate_90_clockwise(&self) -> Direction {
+        match self {
+            Direction::North => Direction::East,
+            Direction::South => Direction::West,
+            Direction::West => Direction::North,
+            Direction::East => Direction::South
+        }
     }
 }
 

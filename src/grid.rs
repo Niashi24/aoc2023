@@ -37,7 +37,7 @@ impl<T: Display> Display for Grid<T> {
             writeln!(f, "")?;
         }
         
-        std::fmt::Result::Ok(())
+        Ok(())
     }
 }
 
