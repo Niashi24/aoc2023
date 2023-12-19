@@ -51,15 +51,15 @@ impl Day<Data> for Day18 {
     }
 
     fn part_1(&self, data: &Data) -> i64 {
-        solve(data.iter().map(|t| (t.dir.clone(), t.dist)))
+        solve(data.iter().map(|t| (&t.dir, t.dist)))
     }
 
     fn part_2(&self, data: &Data) -> i64 {
-        solve(data.iter().map(|t| (t.dir_hex.clone(), t.dist_hex)))
+        solve(data.iter().map(|t| (&t.dir_hex, t.dist_hex)))
     }
 }
 
-fn solve<IT: Iterator<Item=(Direction, i64)>>(iter: IT) -> i64 {
+fn solve<'a, IT: Iterator<Item=(&'a Direction, i64)>>(iter: IT) -> i64 {
     let mut pos = (0, 0);
     let mut vertices = vec![pos];
     let mut perimeter = 0;
@@ -69,17 +69,12 @@ fn solve<IT: Iterator<Item=(Direction, i64)>>(iter: IT) -> i64 {
         vertices.push(pos);
         perimeter += dist;
     }
+    vertices.push(pos);
 
-    shoelace_formula(&vertices) + perimeter / 2 + 1
-}
-
-fn shoelace_formula(vertices: &Vec<(i64, i64)>) -> i64 {
-    let sum = vertices.windows(2).map(|v| {
+    // shoelace formula for area
+    vertices.windows(2).map(|v| {
         v[0].0 * v[1].1 - v[1].0 * v[0].1
-    }).sum::<i64>();
-    
-    let first = vertices.first().unwrap();
-    let last = vertices.last().unwrap();
-
-    (sum + last.0 * first.1 - first.0 * last.1) / 2
+    }).sum::<i64>() / 2 
+        // Pick's Theorem
+        + perimeter / 2 + 1
 }
