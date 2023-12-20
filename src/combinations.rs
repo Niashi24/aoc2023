@@ -46,3 +46,18 @@ impl<'a, T, const N: usize> CombinationIterator<'a, T, N> {
     }
 }
 
+pub struct CartesianIterator<'a, T, const N: usize> {
+    slice: &'a [T],
+    counters: [usize; N]
+}
+
+impl<'a, T, const N: usize> CartesianIterator<'a, T, N> {
+    pub(crate) fn new(slice: &'a [T]) -> Self {
+        Self {
+            slice,
+            counters: [0; N],
+        }
+    }
+}
+
+
