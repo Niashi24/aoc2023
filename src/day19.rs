@@ -172,7 +172,7 @@ impl Rule {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum WorkResult {
     Workflow(String),
     Accepted(bool),
@@ -208,44 +208,6 @@ impl FromStr for WorkResult {
     }
 }
 
-#[derive(Clone)]
-enum Pos {Rule(Rule), Default(WorkResult)}
-
-impl Pos {
-    pub fn get_result(&self) -> &WorkResult {
-        match self {
-            Pos::Rule(r) => &r.result,
-            Pos::Default(w) => w,
-        }
-    }
-}
-
-impl Display for Pos {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Pos::Rule(r) => write!(f, "{}", r),
-            Pos::Default(x) => write!(f, "def:{}", x),
-        }
-    }
-}
-
-fn get_range(path: &Vec<Pos>) -> Option<[Range<usize>; 4]> {
-    const fn range() -> Range<usize> { 1..4001 }
-    const RANGE: Range<usize> = range();
-    let mut cur = [RANGE; 4];
-    for pos in path.iter() {
-        if let Some(c) = match pos {
-            Pos::Rule(r) => r.apply_ranges(cur),
-            Pos::Default(_) => Some(cur)
-        } {
-            cur = c;
-        } else {
-            return None;
-        }
-    }
-    Some(cur)
-}
-
 fn total(ranges: [Range<usize>; 4]) -> usize {
     ranges.into_iter().map(|r| r.len()).product()
 }
@@ -257,7 +219,7 @@ fn inclusion_exclusion(ranges: &Vec<RangeD<4>>) -> usize {
             s.iter().try_fold(intersect, |i, s| i.intersect(s))
                 .map(|x| x.volume())
         }).sum::<usize>() as i64 * if i % 2 == 0 { 1 } else { -1 };
-        dbg!(i);
+        // dbg!(i);
         dbg!(x)
     }).sum::<i64>() as usize
 }
@@ -302,88 +264,79 @@ impl Day<Data> for Day19 {
     }
 
     fn part_2(&self, data: &Data) -> i64 {
-        let mut final_paths = vec![];
-        let mut current_round = vec![];
-        let start = data.workflows.get("in").unwrap();
-        current_round.extend(start.rules.iter().map(|r| vec![Pos::Rule(r.clone())]));
-        current_round.push(vec![Pos::Default(start.default.clone())]);
+        #[derive(Debug)]
+        struct Pos<'a> {
+            ranges: [Range<usize>; 4],
+            pos: &'a WorkResult,
+        }
         
-        let mut next_round = vec![];
-        while current_round.len() != 0 {
-            while let Some(path) = current_round.pop() {
-                let WorkResult::Workflow(cur_pos) = (match path.last().unwrap() {
-                    Pos::Rule(r) => &r.result,
-                    Pos::Default(w) => w
-                }) else { panic!(); };
-                
-                let cur_workflow = data.workflows.get(cur_pos).unwrap();
-                let mut new_paths = vec![path.clone(); cur_workflow.rules.len() + 1];
-                for (i, r) in cur_workflow.rules.iter().enumerate() {
-                    new_paths.get_mut(i).unwrap().push(Pos::Rule(r.clone()));
-                    let opp = Pos::Rule(r.negate());
-                    for j in (i+1)..=cur_workflow.rules.len() {
-                        new_paths.get_mut(j).unwrap().push(opp.clone());
-                    }
-                }
-                new_paths.last_mut().unwrap().push(Pos::Default(cur_workflow.default.clone()));
-                
-                for path in new_paths {
-                    let last = path.last().unwrap().get_result();
-                    match last {
-                        WorkResult::Workflow(_) => {
-                            next_round.push(path);
+        let start_pos = Pos {
+            ranges: [1..4001, 1..4001, 1..4001, 1..4001],
+            pos: &WorkResult::Workflow("in".to_owned()),
+        };
+        let mut to_visit = vec![start_pos];
+        let mut final_ranges = vec![];
+        
+        while to_visit.len() != 0 {
+            while let Some(Pos { mut ranges, pos }) = to_visit.pop() {
+                match pos {
+                    WorkResult::Accepted(b) => {
+                        if *b {
+                            final_ranges.push(ranges);
                         }
-                        WorkResult::Accepted(b) => {
-                            if *b {
-                                final_paths.push(path);
+                    }
+                    WorkResult::Workflow(s) => {
+                        let workflow = data.workflows.get(s).unwrap();
+                        for rule in workflow.rules.iter() {
+                            if let Some(r) = rule.apply_ranges(ranges.clone()) {
+                                to_visit.push(dbg!(Pos {
+                                    ranges: r,
+                                    pos: &rule.result,
+                                }));
+                            }
+                            if let Some(r) = rule.negate().apply_ranges(ranges.clone()) {
+                                ranges = r;
+                            } else {
+                                break;
                             }
                         }
+                        to_visit.push(dbg!(Pos {
+                            ranges,
+                            pos: &workflow.default,
+                        }));
                     }
                 }
             }
-
-            std::mem::swap(&mut current_round, &mut next_round);
         }
         
-        dbg!(final_paths.len());
-        for path in final_paths.iter() {
-            println!("{}",path.iter().join(" -> "));
-        }
+        dbg!(&final_ranges);
         
-        let boxes_4d = final_paths.iter().filter_map(|path| {
-            get_range(path).map(|r| RangeD::<4>::from_range_1d(r))
-        }).collect::<Vec<_>>();
+        // dbg!(test.is_accepted(&data.workflows));
+      
+        let x = final_ranges.into_iter()
+            .map(|r| RangeD::from_range_1d(r))
+            .collect::<Vec<_>>();
         
-        dbg!(&boxes_4d);
-        
-        dbg!(Rating {
-            x: 1,
-            m: 2010,
-            a: 2006,
-            s: 1,
-        }.is_accepted(&data.workflows));
-        
-        let total_volume: usize = boxes_4d.iter().map(|x| x.volume()).sum();
-        dbg!(total_volume);
-        
-        let total_intersection: usize = CombinationIterator::<_, 2>::new(&boxes_4d.as_slice())
-            .filter_map(|x| x[0].intersect(x[1]))
-            .map(|x| x.volume())
-            .sum();
-        dbg!(total_intersection);
-        
-        dbg!(inclusion_exclusion(&boxes_4d));
-        
-        for range in boxes_4d.iter() {
+        for r in x.iter() {
+            // dbg!(r);
+            let start = Rating {
+                x: r.start[0],
+                m: r.start[1],
+                a: r.start[2],
+                s: r.start[3],
+            };
+            let end = Rating {
+                x: r.end[0] - 1,
+                m: r.end[1] - 1,
+                a: r.end[2] - 1,
+                s: r.end[3] - 1,
+            };
             
+            dbg!(start.is_accepted(&data.workflows));
+            dbg!(end.is_accepted(&data.workflows));
         }
         
-        // let a = (0..20).collect::<Vec<_>>();
-        // for [a, b] in CombinationIterator::<_, 2>::new(a.as_slice()) {
-        //     println!("{} {}", a, b);
-        // }
-
-        // (total_volume - total_intersection) as i64
-        0
+        // inclusion_exclusion(&x) as i64
+        x.iter().map(|x| x.volume()).sum::<usize>() as i64
     }
 }
