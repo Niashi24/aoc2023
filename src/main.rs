@@ -12,6 +12,8 @@ use crate::day17::Day17;
 use crate::day18::Day18;
 use crate::day19::Day19;
 use crate::day20::Day20;
+use crate::day21::Day21;
+use crate::day22::Day22;
 use crate::day3::Day3;
 use crate::day4::Day4;
 use crate::day5::Day5;
@@ -19,6 +21,7 @@ use crate::day6::Day6;
 use crate::day7::Day7;
 use crate::day8::Day8;
 use crate::day9::Day9;
+use crate::ranges::RangeD;
 
 mod vector;
 mod day;
@@ -45,9 +48,11 @@ mod day18;
 mod day19;
 mod ranges;
 mod day20;
+mod day21;
+mod day22;
 
 fn main() -> std::io::Result<()> {
-    test_day20()?;
+    test_day22()?;
     Ok(())
 }
 
@@ -262,5 +267,25 @@ fn test_day20() -> std::io::Result<()> {
         "input/day20e.txt",
         (11687500,0),
         "input/day20.txt"
+    )
+}
+
+fn test_day21() -> std::io::Result<()> {
+    println!("<--------    Running Day 21   -------->");
+    run_with_test(
+        &Day21,
+        "input/day21e.txt",
+        (16,0),
+        "input/day21.txt"
+    )
+}
+
+fn test_day22() -> std::io::Result<()> {
+    println!("<--------    Running Day 22   -------->");
+    run_with_test(
+        &Day22,
+        "input/day22e.txt",
+        (5,7),
+        "input/day22.txt"
     )
 }

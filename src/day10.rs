@@ -171,7 +171,7 @@ fn successor(pos: Pos, grid: &Vec<Vec<char>>) -> Pos {
 #[derive(Clone)]
 #[derive(Hash)]
 pub enum Direction {North, South, West, East}
-const DIRECTIONS: [Direction; 4] = [Direction::North, Direction::South, Direction::East, Direction::West];
+pub(crate) const DIRECTIONS: [Direction; 4] = [Direction::North, Direction::South, Direction::East, Direction::West];
 
 impl Direction {
     pub(crate) fn transform(&self, pos: (usize, usize)) -> (usize, usize) {
@@ -183,6 +183,27 @@ impl Direction {
             Direction::East => (x + 1, y)
         }
     }
+    
+    pub(crate) fn transform_range(&self, pos: (usize, usize), x_range: &Range<usize>, y_range: &Range<usize>) -> Option<(usize, usize)> {
+        let (x, y) = pos;
+        match self {
+            Direction::North => if y_range.start != y { Some((x, y - 1)) } else { None }
+            Direction::South => if y_range.end != y + 1 { Some((x, y + 1)) } else { None }
+            Direction::West => if x_range.start != x { Some((x - 1, y)) } else { None }
+            Direction::East => if x_range.end != x + 1 { Some((x + 1, y)) } else { None }
+        }
+    }
+
+    pub(crate) fn transform_range_cycle(&self, pos: (usize, usize), x_range: &Range<usize>, y_range: &Range<usize>) -> Option<(usize, usize)> {
+        let (x, y) = pos;
+        match self {
+            Direction::North => if y_range.start != y { Some((x, y - 1)) } else { None }
+            Direction::South => if y_range.end != y + 1 { Some((x, y + 1)) } else { None }
+            Direction::West => if x_range.start != x { Some((x - 1, y)) } else { None }
+            Direction::East => if x_range.end != x + 1 { Some((x + 1, y)) } else { None }
+        }
+    }
+    
     pub(crate) fn transform_i(&self, pos: (i64, i64)) -> (i64, i64) {
         let (x, y) = pos;
         match self {

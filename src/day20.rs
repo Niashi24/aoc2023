@@ -2,6 +2,9 @@
 pub struct Day20;
 
 use std::collections::{HashMap, VecDeque};
+use std::fmt::{Display, Formatter};
+use std::{thread, time};
+use itertools::{Itertools, join};
 use pathfinding::prelude::brent;
 use crate::day::Day;
 
@@ -17,12 +20,52 @@ pub enum ModuleType {
     }
 }
 
+
+const DISABLED: &str = "□";
+const ENABLED: &str = "■";
+impl Display for ModuleType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ModuleType::Broadcaster => write!(f, ""),
+            ModuleType::FlipFlop { memory } => {
+                write!(f, "{}", match memory {
+                    &true => ENABLED,
+                    &false => DISABLED,
+                })
+            }
+            ModuleType::Conjunction { memory } => {
+                let mut modules = memory.keys().collect::<Vec<_>>();
+                modules.sort_unstable();
+                write!(f, "{}", modules.into_iter().map(|s| {
+                    match memory.get(s).unwrap() {
+                        &true => ENABLED,
+                        &false => DISABLED,
+                    }}).join(" "))
+                // for module in modules {
+                //     let value = memory.get(module).unwrap();
+                //     write!(f, "{}", match value {
+                //         &true => ENABLED,
+                //         &false => DISABLED,
+                //     })?;
+                // }
+                // Ok(())
+            }
+        }
+    }
+}
+
 #[derive(Eq, PartialEq, Clone)]
 #[derive(Debug)]
 pub struct Module {
     m_type: ModuleType,
     label: String,
     destinations: Vec<String>,
+}
+
+impl Display for Module {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}: {} -> {}", self.label, self.m_type, self.destinations.iter().join(", "))
+    }
 }
 
 #[derive(Clone)]
@@ -95,6 +138,34 @@ fn step_modules_2(mut data: Data) -> (Data, bool) {
     (data, false)
 }
 
+fn step_modules_3(mut data: Data) -> Vec<String> {
+    const FRACTION: f32 = 1.0;
+    let min = (data.len() as f32 * FRACTION) as usize;
+    let mut first_pulses = vec![];
+    let mut pulses = VecDeque::from([("broadcaster".to_owned(), Pulse::new("broadcaster".to_owned(), false))]);
+    while let Some((to, pulse)) = pulses.pop_front() {
+        if !first_pulses.contains(&to) { 
+            first_pulses.push(to.clone());
+            if first_pulses.len() >= min {
+                return first_pulses;
+            }
+        }
+        let Some(module) = data.get_mut(&to) else {
+            if to == "rx" && !pulse.pulse {
+                return first_pulses;
+            }
+            continue;
+        };
+        if let Some(new_pulse) = module.process_signal(pulse) {
+            for dest in module.destinations.iter().cloned() {
+                pulses.push_back((dest.clone(), new_pulse.clone()));
+            }
+        }
+    }
+
+    first_pulses
+}
+
 impl Day<Data> for Day20 {
     fn parse_file(&self, file_content: String) -> Data {
         let mut conjunctions = vec![];
@@ -161,14 +232,41 @@ impl Day<Data> for Day20 {
     fn part_2(&self, data: &Data) -> i64 {
         if !data.values().any(|s| s.destinations.contains(&"rx".to_owned())) { return 0; }
         
+        dbg!(&data);
+        
+        let x = dbg!(step_modules_3(data.clone()));
+        
         let mut i = 0;
         let mut data = data.clone();
         loop {
             i += 1;
             let b;
             (data, b) = step_modules_2(data);
+            print_data_subset(&data, &x);
             if b { return i; }
         }
     }
 }
 
+fn print_data(data: &Data) {
+    print!("\x1B[2J\x1B[1;1H");
+    println!("-------------");
+    let mut modules = data.keys().cloned().collect::<Vec<_>>();
+    modules.sort_unstable();
+    
+    for module in modules {
+        let module = data.get(&module).unwrap();
+        println!("{}", module);
+    }
+    thread::sleep(time::Duration::from_millis(100));
+}
+
+fn print_data_subset(data: &Data, modules: &Vec<String>) {
+    print!("\x1B[2J\x1B[1;1H");
+    println!("-------------");
+    for module in modules {
+        let Some(module) = data.get(module) else { continue; };
+        println!("{}", module);
+    }
+    thread::sleep(time::Duration::from_millis(500));
+}
