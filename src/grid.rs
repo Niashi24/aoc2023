@@ -24,6 +24,11 @@ impl<T> Grid<T> {
         self.grid.get(y).and_then(|y| y.get(x))
     }
     
+    #[inline]
+    pub fn get_mut(&mut self, x: usize, y: usize) -> Option<&mut T> {
+        self.grid.get_mut(y).and_then(|y| y.get_mut(x))
+    }
+    
     pub fn get_i(&self, x: i64, y: i64) -> Option<&T> {
         if x < 0 || y < 0 { None }
         else { self.get(x as usize, y as usize) }
@@ -54,6 +59,8 @@ impl<T> Grid<T> {
             y: 0,
         }
     }
+    
+    
 }
 
 pub struct GridIter<'a, T> {

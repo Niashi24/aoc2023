@@ -168,7 +168,7 @@ fn successor(pos: Pos, grid: &Vec<Vec<char>>) -> Pos {
 
 #[derive(Eq, PartialEq)]
 #[derive(Debug)]
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 #[derive(Hash)]
 pub enum Direction {North, South, West, East}
 pub(crate) const DIRECTIONS: [Direction; 4] = [Direction::North, Direction::South, Direction::East, Direction::West];
@@ -223,7 +223,7 @@ impl Direction {
         }
     }
 
-    fn opposite_dir(&self) -> Direction {
+    pub(crate) fn opposite_dir(&self) -> Direction {
         match self {
             Direction::North => Direction::South,
             Direction::South => Direction::North,
