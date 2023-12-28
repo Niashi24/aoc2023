@@ -40,7 +40,8 @@ impl Day<Grid<Tile>> for Day23 {
     }
 
     fn part_1(&self, data: &Grid<Tile>) -> i64 {
-        94
+        solve(data)
+        // 94
         // let start = Pos {
         //     pos: (1, 0),
         //     dir: Direction::South,
@@ -95,95 +96,154 @@ impl Day<Grid<Tile>> for Day23 {
             }
         }
         
-        print_grid(&new_grid, &vec![]);
+        solve(&new_grid)
         
-        let successors = |Pos{ pos, dir}| {
-            DIRECTIONS.iter()
-                .filter(|d| &d.opposite_dir() != &dir)
-                .map(|d| Pos {pos: d.transform(pos), dir: *d})
-                .filter(|Pos {pos, dir}| {
-                    match data.get(pos.0, pos.1).unwrap_or(&Tile::Forest) {
-                        Tile::Path => true,
-                        Tile::Forest => false,
-                        Tile::Slope(d) => dir == d,
-                    }
-                }).collect_vec()
-        };
-        
-        let start = Pos {
-            pos: (1, 0),
-            dir: Direction::South,
-        };
-
-        let end = Pos {
-            pos: (data.w - 2, data.h - 1),
-            dir: Direction::South,
-        };
-        
-        let mut map: HashMap<Pos, Vec<(Pos, i64)>> = HashMap::new();
-        let mut to_visit = vec![(start.clone(), vec![successors(start).pop().unwrap()])];
-        while let Some((start, branches)) = to_visit.pop() {
-            for branch in branches {
-                let mut last = branch.clone();
-                let mut suc = successors(branch);
-                let mut cost = 1;
-                while suc.len() == 1 && suc.last().unwrap() != &end {
-                    last = suc.pop().unwrap();
-                    suc = successors(last.clone());
-                    cost += 1;
-                }
-                
-                map.entry(start.clone())
-                    .and_modify(|x| x.push((last.clone(), cost)))
-                    .or_insert(vec![(last.clone(), cost)]);
-                
-                if !map.contains_key(&last) {
-                    to_visit.push((last, suc));
-                }
-            }
-        }
-        
-        for (p, suc) in map.iter() {
-            println!("({}, {}) -> [{}]", p.pos.0, p.pos.1, suc.iter().map(|(Pos {pos: (x, y), ..}, c)| {
-                format!("(({}, {}), {})", x, y, c)
-            }).join(", "))
-        }
-        
-        // dbg!(&map);
-
-        // let paths = yen(&start,
-        //                 |(Pos {pos, dir}, set)|
-        //                     DIRECTIONS.iter()
-        //                         .filter(|d| &d.opposite_dir() != dir)
-        //                         .map(|d| Pos {pos: d.transform(*pos), dir: *d})
-        //                         .filter(|Pos {pos, dir}| {
-        //                             match data.get(pos.0, pos.1).unwrap() {
-        //                                 Tile::Path => true,
-        //                                 Tile::Forest => false,
-        //                                 Tile::Slope(d) => true,
-        //                             }
-        //                         })
-        //                         .filter(|p| !set.contains(&p.pos))
-        //                         .map(|p| {
-        //                             let mut set = set.clone();
-        //                             set.push(p.pos);
-        //                             ((p, set), 1)
-        //                         })
-        //                         .collect_vec(),
-        //                 |(p, _)| p == &end,
-        //                 usize::MAX
-        // );
+        // print_grid(&new_grid, &vec![]);
         // 
-        // // for (_, c) in paths.iter() {
-        // //     print_grid(&data, path);
-        // //     println!();
+        // let successors = |Pos{ pos, dir}| {
+        //     DIRECTIONS.iter()
+        //         .filter(|d| &d.opposite_dir() != &dir)
+        //         .map(|d| Pos {pos: d.transform(pos), dir: *d})
+        //         .filter(|Pos {pos, dir}| {
+        //             match data.get(pos.0, pos.1).unwrap_or(&Tile::Forest) {
+        //                 Tile::Path => true,
+        //                 Tile::Forest => false,
+        //                 Tile::Slope(d) => dir == d,
+        //             }
+        //         }).collect_vec()
+        // };
+        // 
+        // let start = Pos {
+        //     pos: (1, 0),
+        //     dir: Direction::South,
+        // };
+        // 
+        // let end = Pos {
+        //     pos: (data.w - 2, data.h - 1),
+        //     dir: Direction::South,
+        // };
+        // 
+        // let mut map: HashMap<(usize, usize), Vec<((usize, usize), i64)>> = HashMap::new();
+        // let mut to_visit = vec![(start.clone(), vec![successors(start.clone()).pop().unwrap()])];
+        // while let Some((start, branches)) = to_visit.pop() {
+        //     for branch in branches {
+        //         let mut last = branch.clone();
+        //         let mut suc = successors(branch);
+        //         let mut cost = 1;
+        //         while suc.len() == 1 && suc.last().unwrap() != &end {
+        //             last = suc.pop().unwrap();
+        //             suc = successors(last.clone());
+        //             cost += 1;
+        //         }
+        //         
+        //         map.entry(start.pos)
+        //             .and_modify(|x| x.push((last.pos, cost)))
+        //             .or_insert(vec![(last.pos, cost)]);
+        //         
+        //         if !map.contains_key(&last.pos) {
+        //             to_visit.push((last, suc));
+        //         }
+        //     }
+        // }
+        // 
+        // // for (p, suc) in map.iter() {
+        // //     println!("({}, {}) -> [{}]", p.0, p.1, suc.iter().map(|((x, y), c)| {
+        // //         format!("(({}, {}), {})", x, y, c)
+        // //     }).join(", "))
         // // }
         // 
-        // paths.iter()
-        //     .map(|(_, c)| *c)
-        //     .max().unwrap()
-        0
+        // let mut to_visit = vec![(start.pos, 0, HashSet::new())];
+        // // let mut paths = vec![];
+        // let mut max_length = 0;
+        // while let Some((pos, cost, mut set)) = to_visit.pop() {
+        //     if pos == end.pos {
+        //         max_length = max_length.max(cost);
+        //         continue;
+        //     }
+        //     set.insert(pos);
+        //     
+        //     for (next, c) in map.get(&pos).unwrap_or(&vec![]).clone() {
+        //         if set.contains(&next) { continue; }
+        //         to_visit.push((next, cost + c, set.clone()));
+        //     } 
+        // }
+        // max_length
     }
+}
+
+fn solve(grid: &Grid<Tile>) -> i64 {
+    let successors = |Pos{ pos, dir}| {
+        DIRECTIONS.iter()
+            .filter(|d| &d.opposite_dir() != &dir)
+            .map(|d| Pos {pos: d.transform(pos), dir: *d})
+            .filter(|Pos {pos, dir}| {
+                match grid.get(pos.0, pos.1).unwrap_or(&Tile::Forest) {
+                    Tile::Path => true,
+                    Tile::Forest => false,
+                    Tile::Slope(d) => dir == d,
+                }
+            }).collect_vec()
+    };
+
+    let start = Pos {
+        pos: (1, 0),
+        dir: Direction::South,
+    };
+
+    let end = Pos {
+        pos: (grid.w - 2, grid.h - 1),
+        dir: Direction::South,
+    };
+
+    let mut map: HashMap<(usize, usize), Vec<((usize, usize), i64)>> = HashMap::new();
+    let mut to_visit = vec![(start.clone(), vec![successors(start.clone()).pop().unwrap()])];
+    while let Some((start, branches)) = to_visit.pop() {
+        for branch in branches {
+            let mut last = branch.clone();
+            let mut suc = successors(branch);
+            let mut cost = 1;
+            while suc.len() == 1 && suc.last().unwrap() != &end {
+                last = suc.pop().unwrap();
+                suc = successors(last.clone());
+                cost += 1;
+            }
+
+            map.entry(start.pos)
+                .and_modify(|x| x.push((last.pos, cost)))
+                .or_insert(vec![(last.pos, cost)]);
+
+            if !map.contains_key(&last.pos) {
+                to_visit.push((last, suc));
+            }
+        }
+    }
+
+    for (p, suc) in map.iter() {
+        println!("({}, {}) -> [{}]", p.0, p.1, suc.iter().map(|((x, y), c)| {
+            format!("(({}, {}), {})", x, y, c)
+        }).join(", "))
+    }
+
+    let mut to_visit = vec![(start.pos, 0, HashSet::new())];
+    // let mut paths = vec![];
+    let mut max_length = 0;
+    while let Some((pos, cost, mut set)) = to_visit.pop() {
+        if pos == end.pos {
+            // dbg!(cost);
+            if cost > max_length {
+                println!("New max: {}", cost);
+            }
+            max_length = max_length.max(cost);
+            continue;
+        }
+        set.insert(pos);
+
+        for (next, c) in map.get(&pos).unwrap_or(&vec![]).clone() {
+            if set.contains(&next) { continue; }
+            to_visit.push((next, cost + c, set.clone()));
+        }
+    }
+    max_length
 }
 
 fn print_grid(grid: &Grid<Tile>, path: &Vec<Pos>) {

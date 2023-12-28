@@ -13,9 +13,25 @@ pub(crate) fn intersects(a: &Range<usize>, b: &Range<usize>) -> bool {
     a.contains(&b.start) || b.contains(&a.start)
 }
 
+pub(crate) fn intersect_n<const N: usize>(a: &[Range<i64>; N], b: &[Range<i64>; N]) -> Option<[Range<i64>; N]> {
+    let mut out = a.clone();
+    for (a, b) in out.iter_mut().zip(b.iter()) {
+        *a = a.start.max(b.start)..a.end.min(b.end);
+    }
+    
+    // dbg!(&out);
+    
+    if out.iter().all(|r| {
+        r.end > r.start
+    }) {
+        Some(out)
+    } else { None }
+}
+
 pub(crate) fn min_max_xy<Iter, Idx>(iter: Iter) -> Option<(Range<Idx>, Range<Idx>)>
-    where   Iter: Iterator<Item=(Idx, Idx)>,
-            Idx: Copy + Ord + Bounded + One + Add<Output=Idx>
+where
+    Iter: Iterator<Item=(Idx, Idx)>,
+    Idx: Copy + Ord + Bounded + One + Add<Output=Idx>
 {
     let mut min_x = Idx::max_value();
     let mut max_x = Idx::min_value();
@@ -56,6 +72,15 @@ pub(crate) fn min_max_comp<Iter, Idx, const N: usize>(iter: Iter) -> Option<([Id
 pub struct RangeD<const N: usize> {
     pub(crate) start: [usize; N],
     pub(crate) end: [usize; N]
+}
+
+impl<'a, const N: usize> IntoIterator for &'a RangeD<N> {
+    type Item = [usize; N];
+    type IntoIter = RangeDIterator<'a, N>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
 }
 
 impl<const N: usize> Display for RangeD<N> {

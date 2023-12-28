@@ -1,3 +1,4 @@
+use pathfinding::prelude::separate_components;
 use crate::day1::Day1;
 use crate::day2::Day2;
 use crate::day::{run, run_with_test, run_with_test_2};
@@ -15,6 +16,8 @@ use crate::day20::Day20;
 use crate::day21::Day21;
 use crate::day22::Day22;
 use crate::day23::Day23;
+use crate::day24::Day24;
+use crate::day25::Day25;
 use crate::day3::Day3;
 use crate::day4::Day4;
 use crate::day5::Day5;
@@ -23,6 +26,7 @@ use crate::day7::Day7;
 use crate::day8::Day8;
 use crate::day9::Day9;
 use crate::ranges::RangeD;
+use crate::slope_descent::test_grad_descent;
 
 mod vector;
 mod day;
@@ -52,9 +56,14 @@ mod day20;
 mod day21;
 mod day22;
 mod day23;
+mod day24;
+mod slope_descent;
+mod day25;
+mod graph;
 
 fn main() -> std::io::Result<()> {
-    test_day23()?;
+    // crate::graph::test_adjacency_matrix();
+    test_day25()?;
     Ok(())
 }
 
@@ -293,11 +302,31 @@ fn test_day22() -> std::io::Result<()> {
 }
 
 fn test_day23() -> std::io::Result<()> {
-    println!("<--------    Running Day 22   -------->");
+    println!("<--------    Running Day 23   -------->");
     run_with_test(
         &Day23,
         "input/day23e.txt",
         (94,154),
         "input/day23.txt"
+    )
+}
+
+fn test_day24() -> std::io::Result<()> {
+    println!("<--------    Running Day 24   -------->");
+    run_with_test(
+        &Day24,
+        "input/day24e.txt",
+        (2,0),
+        "input/day24.txt"
+    )
+}
+
+fn test_day25() -> std::io::Result<()> {
+    println!("<--------    Running Day 25   -------->");
+    run_with_test(
+        &Day25,
+        "input/day25e.txt",
+        (54,0),
+        "input/day25.txt"
     )
 }
