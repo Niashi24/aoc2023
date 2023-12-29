@@ -89,6 +89,18 @@ impl<'a, T> Iterator for GridIter<'a, T> {
     }
 }
 
+impl<T, IT> FromIterator<IT> for Grid<T>
+    where
+        IT: IntoIterator<Item = T>
+{
+    fn from_iter<TIT: IntoIterator<Item=IT>>(iter: TIT) -> Self {
+        Self::new(iter.into_iter()
+            .map(|y| y.into_iter()
+                .collect())
+            .collect())
+    }
+}
+
 impl<T: Display> Display for Grid<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         for row in self.grid.iter() {

@@ -25,7 +25,7 @@ pub enum Tile {
 
 impl Day<Grid<Tile>> for Day23 {
     fn parse_file(&self, file_content: String) -> Grid<Tile> {
-        Grid::new(file_content.lines().map(|s| s.chars().map(|c| {
+        file_content.lines().map(|s| s.chars().map(|c| {
             match c {
                 '#' => Tile::Forest,
                 '.' => Tile::Path,
@@ -35,8 +35,7 @@ impl Day<Grid<Tile>> for Day23 {
                 'v' => Tile::Slope(Direction::South),
                 _ => panic!("{c}")
             }
-        }).collect())
-            .collect())
+        })).collect()
     }
 
     fn part_1(&self, data: &Grid<Tile>) -> i64 {

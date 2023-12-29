@@ -48,11 +48,10 @@ impl Pos {
 
 impl Day<Data> for Day17 {
     fn parse_file(&self, file_content: String) -> Data {
-        Data::new(file_content.lines()
+        file_content.lines()
             .map(|s| s.chars()
-                .map(|x| x.to_digit(10).unwrap() as usize)
-                .collect())
-            .collect())
+                .map(|x| x.to_digit(10).unwrap() as usize))
+            .collect()
     }
 
     fn part_1(&self, data: &Data) -> i64 {

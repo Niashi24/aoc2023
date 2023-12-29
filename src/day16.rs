@@ -110,10 +110,9 @@ impl Pos {
 impl Day<Data> for Day16 {
     fn parse_file(&self, file_content: String) -> Data {
         Data {
-            grid: Grid::new(file_content.lines()
-                    .map(|s| s.chars().map(Tile::char_to_tile)
-                    .collect())
-                .collect())
+            grid: file_content.lines()
+                    .map(|s| s.chars().map(Tile::char_to_tile))
+                .collect()
         }
     }
 
