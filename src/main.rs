@@ -62,8 +62,7 @@ mod day25;
 mod graph;
 
 fn main() -> std::io::Result<()> {
-    // crate::graph::test_adjacency_matrix();
-    test_day25()?;
+    test_day19()?;
     Ok(())
 }
 

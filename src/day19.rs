@@ -8,6 +8,7 @@ use itertools::FoldWhile::Continue;
 use itertools::{FoldWhile, Itertools};
 use regex::Regex;
 use crate::combinations::CombinationIterator;
+use crate::day5::Map;
 use crate::day::Day;
 use crate::ranges::{intersect, RangeD};
 
@@ -46,7 +47,7 @@ impl FromStr for Part {
             "m" => Part::M,
             "a" => Part::A,
             "s" => Part::S,
-            x => panic!("{x}")
+            _ => panic!("{s}")
         })
     }
 }
@@ -289,10 +290,10 @@ impl Day<Data> for Day19 {
                         let workflow = data.workflows.get(s).unwrap();
                         for rule in workflow.rules.iter() {
                             if let Some(r) = rule.apply_ranges(ranges.clone()) {
-                                to_visit.push(dbg!(Pos {
+                                to_visit.push(Pos {
                                     ranges: r,
                                     pos: &rule.result,
-                                }));
+                                });
                             }
                             if let Some(r) = rule.negate().apply_ranges(ranges.clone()) {
                                 ranges = r;
@@ -300,43 +301,18 @@ impl Day<Data> for Day19 {
                                 break;
                             }
                         }
-                        to_visit.push(dbg!(Pos {
+                        to_visit.push(Pos {
                             ranges,
                             pos: &workflow.default,
-                        }));
+                        });
                     }
                 }
             }
         }
         
-        dbg!(&final_ranges);
-        
-        // dbg!(test.is_accepted(&data.workflows));
-      
-        let x = final_ranges.into_iter()
-            .map(|r| RangeD::from_range_1d(r))
-            .collect::<Vec<_>>();
-        
-        for r in x.iter() {
-            // dbg!(r);
-            let start = Rating {
-                x: r.start[0],
-                m: r.start[1],
-                a: r.start[2],
-                s: r.start[3],
-            };
-            let end = Rating {
-                x: r.end[0] - 1,
-                m: r.end[1] - 1,
-                a: r.end[2] - 1,
-                s: r.end[3] - 1,
-            };
-            
-            dbg!(start.is_accepted(&data.workflows));
-            dbg!(end.is_accepted(&data.workflows));
-        }
-        
-        // inclusion_exclusion(&x) as i64
-        x.iter().map(|x| x.volume()).sum::<usize>() as i64
+        final_ranges.into_iter()
+            .map(|r| r.into_iter()
+                .map(|x| x.len()).product::<usize>())
+            .sum::<usize>() as i64
     }
 }

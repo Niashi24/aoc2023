@@ -65,7 +65,8 @@ impl Day<Vec<Component>> for Day25 {
         // kinda jank but nodes are ~50% distributed between so should eventually get a valid pair
         let mut start = data.choose(&mut thread_rng()).unwrap().name.clone();
         let mut end = data.choose(&mut thread_rng()).unwrap().name.clone();
-        while end == start || remove_triple_edges(&mut map, &start, &end).is_err() {
+        while end == start || // having them be the same causes infinite loop
+            remove_triple_edges(&mut map, &start, &end).is_err() {  // removal failed
             end = data.choose(&mut thread_rng()).unwrap().name.clone();
             start = data.choose(&mut thread_rng()).unwrap().name.clone();
         }        
@@ -74,13 +75,12 @@ impl Day<Vec<Component>> for Day25 {
         let mut to_visit = vec![start.clone()];
         let mut visited = HashSet::from([start]);
         while let Some(pos) = to_visit.pop() {
-            if let Some(sucs) = map.get(&pos) {
-                for x in sucs {
-                    if visited.contains(x) { continue; }
+            map.get(&pos)
+                .map(|sucs| sucs.iter().for_each(|x| {
+                    if visited.contains(x) { return; }
                     visited.insert(x.clone());
                     to_visit.push(x.clone());
-                }
-            }
+                }));
         }
         
         (visited.len() * (map.len() - visited.len())) as i64
