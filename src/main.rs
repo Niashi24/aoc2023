@@ -62,7 +62,7 @@ mod day25;
 mod graph;
 
 fn main() -> std::io::Result<()> {
-    test_day17()?;
+    test_day24()?;
     Ok(())
 }
 
@@ -315,7 +315,7 @@ fn test_day24() -> std::io::Result<()> {
     run_with_test(
         &Day24,
         "input/day24e.txt",
-        (2,0),
+        (2,47),
         "input/day24.txt"
     )
 }

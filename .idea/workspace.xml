@@ -9,6 +9,9 @@
   <component name="ChangeListManager">
     <list default="true" id="bd499cbf-07cd-4017-a64a-1be3f857a455" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/day20.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/day20.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/day24.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/day24.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -60,7 +63,7 @@
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
     &quot;org.rust.cargo.project.model.PROJECT_DISCOVERY&quot;: &quot;true&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;vcs.Git&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;editor.preferences.completion&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
@@ -236,6 +239,9 @@
       <workItem from="1702617540064" duration="2933000" />
       <workItem from="1703816141331" duration="32000" />
       <workItem from="1703818662421" duration="878000" />
+      <workItem from="1703819815518" duration="7278000" />
+      <workItem from="1703956681046" duration="14627000" />
+      <workItem from="1703989285106" duration="17293000" />
     </task>
     <servers />
   </component>

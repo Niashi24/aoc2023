@@ -1,11 +1,11 @@
 ﻿
 pub struct Day20;
 
-use std::collections::{HashMap, VecDeque};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt::{Display, Formatter};
 use std::{thread, time};
 use itertools::{Itertools, join};
-use pathfinding::prelude::brent;
+use pathfinding::prelude::{brent, topological_sort};
 use crate::day::Day;
 
 #[derive(Eq, PartialEq, Clone)]
@@ -233,8 +233,28 @@ impl Day<Data> for Day20 {
         if !data.values().any(|s| s.destinations.contains(&"rx".to_owned())) { return 0; }
         
         dbg!(&data);
+        let mut receivers: HashMap<String, HashSet<String>> = HashMap::new();
+        for (name, module) in data.iter() {
+            for destination in module.destinations.iter() {
+                receivers.entry(destination.clone())
+                    .and_modify(|x| { x.insert(name.clone()); })
+                    .or_insert(HashSet::from([name.clone()]));
+            }
+        }
+        dbg!(receivers);
         
-        let x = dbg!(step_modules_3(data.clone()));
+        let nodes = data.keys().collect_vec();
+        
+        let none = vec![];
+        
+        let m = topological_sort(
+            &nodes,
+            |x| {
+                data.get(*x).map(|x| &x.destinations).unwrap_or(&none)
+            }
+        );
+        dbg!(&m);
+        // let x = dbg!(step_modules_3(data.clone()));
         
         let mut i = 0;
         let mut data = data.clone();
@@ -242,7 +262,7 @@ impl Day<Data> for Day20 {
             i += 1;
             let b;
             (data, b) = step_modules_2(data);
-            print_data_subset(&data, &x);
+            // print_data_subset(&data, &x);
             if b { return i; }
         }
     }
