@@ -66,16 +66,11 @@ impl Day<Vec<Hail>> for Day24 {
         let test_area = if data.len() == 5 { 7.0..=27.0} 
         else { 200000000000000.0..=400000000000000.0 };
         
-        let mut count = 0;        
-        for [a, b] in CombinationIterator::<_, 2>::new(data.as_slice()) {
-            if let Some(([x, y], u, v)) = a.intersect_2d(b) {
-                if u >= 0.0 && v >= 0.0 && test_area.contains(&x) && test_area.contains(&y) {
-                    count += 1;
-                }
-            }
-        }
-        
-        count
+        data.iter().tuple_combinations()
+            .filter_map(|(a, b)| a.intersect_2d(b))
+            .filter(|([x, y], u, v)|
+                u >= &0.0 && v >= &0.0 && test_area.contains(x) && test_area.contains(y))
+            .count() as i64
     }
 
     fn part_2(&self, data: &Vec<Hail>) -> i64 {
@@ -85,7 +80,7 @@ impl Day<Vec<Hail>> for Day24 {
 }
 
 fn solve(mut hails: [Hail; 4]) -> Option<f64> {
-    // Solve for px, py, vx, vy
+    // Solve for px, py, vx, vy numerically
     let A = Matrix4::from_fn(|x, y| {
        match x {
            0 => hails[y].vel[1],
@@ -129,7 +124,7 @@ fn solve(mut hails: [Hail; 4]) -> Option<f64> {
     let PZVZ = BZInv * CZ;
     let [pz, vz] = PZVZ.data.0[0].map(|r| r.round());
     
-    println!("{}, {}, {} @ {}, {}, {}", px, py, pz, vx, vy, vz);
+    // println!("{}, {}, {} @ {}, {}, {}", px, py, pz, vx, vy, vz);
     
     Some(px + py + pz)
 }
