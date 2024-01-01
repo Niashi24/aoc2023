@@ -1,6 +1,5 @@
 ﻿use itertools::Itertools;
-use nalgebra::{Matrix1x4, Matrix2, Matrix2x1, Matrix4};
-use crate::combinations::CombinationIterator;
+use nalgebra::{Matrix2, Matrix2x1, Matrix4, Matrix4x1};
 use crate::day::Day;
 
 pub struct Day24;
@@ -12,7 +11,7 @@ pub struct Hail {
 }
 
 impl Hail {
-    pub fn intersect_2d(&self, other: &Self) -> Option<(P2D, f64, f64)> {
+    pub fn intersect_2d(&self, other: &Self) -> Option<([f64; 2], f64, f64)> {
         let v1 = [self.pos[0], self.pos[1]];
         let v2 = [self.vel[0], self.vel[1]];
         let v3 = [other.pos[0], other.pos[1]];
@@ -35,9 +34,7 @@ impl Hail {
     pub fn uz(&self) -> f64 { self.vel[2] }
 }
 
-type P2D = [f64; 2];
-
-fn intersect_2d(v1: P2D, v2: P2D, v3: P2D, v4: P2D) -> Option<(P2D, f64, f64)> {
+fn intersect_2d(v1: [f64; 2], v2: [f64; 2], v3: [f64; 2], v4: [f64; 2]) -> Option<([f64; 2], f64, f64)> {
     let determinant = v2[0] * v4[1] - v4[0] * v2[1];
     if determinant == 0.0 { return None; }
     
@@ -80,31 +77,25 @@ impl Day<Vec<Hail>> for Day24 {
 }
 
 fn solve(mut hails: [Hail; 4]) -> Option<f64> {
-    // Solve for px, py, vx, vy numerically
-    let A = Matrix4::from_fn(|x, y| {
-       match x {
-           0 => hails[y].vel[1],
-           1 => -hails[y].vel[0],
-           2 => -hails[y].pos[1],
-           3 => hails[y].pos[0],
-           _ => panic!("{x}")
-       } 
-    });
+    
+    let A = Matrix4::from([
+        hails.clone().map(|r| r.uy()),
+        hails.clone().map(|r| -r.ux()),
+        hails.clone().map(|r| -r.sy()),
+        hails.clone().map(|r| r.sx())
+    ]);
     let AINV = A.try_inverse().unwrap();
     
-    let B = Matrix1x4::from(hails.clone().map(|h| h.pos[0] * h.vel[1] - h.pos[1] * h.vel[0]));
+    let B = Matrix4x1::from(hails.clone().map(|h| h.pos[0] * h.vel[1] - h.pos[1] * h.vel[0]));
     
     // Initial guess
-    let mut X = Matrix1x4::from_element(1.0);
+    let mut X = Matrix4x1::from_element(1.0);
     
     for _ in 0..1000 {
-        let det = X[0]*X[3] - X[1] * X[2];
-        let O = Matrix1x4::from_element(det);
-        let O = B + O;
-        
-        X = O * AINV;
+        let O = B + Matrix4x1::from_element(X[0] * X[3] - X[1] * X[2]);
+        X = AINV * O;
     }
-    let [px, py, vx, vy] = X.data.0.map(|r| r[0].round());
+    let [px, py, vx, vy] = X.data.0[0];
     
     // solve for pz, vz algebraically    
     let [sx, _, sz1] = hails[0].pos;
@@ -122,9 +113,7 @@ fn solve(mut hails: [Hail; 4]) -> Option<f64> {
     let BZInv = BZ.try_inverse()?;
 
     let PZVZ = BZInv * CZ;
-    let [pz, vz] = PZVZ.data.0[0].map(|r| r.round());
-    
-    // println!("{}, {}, {} @ {}, {}, {}", px, py, pz, vx, vy, vz);
+    let [pz, vz] = PZVZ.data.0[0];
     
     Some(px + py + pz)
 }
