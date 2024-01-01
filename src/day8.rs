@@ -79,7 +79,7 @@ impl Day<Data> for Day8 {
             .filter(|(cur, _)| cur.0[2] == 'A')
             .map(|x| Pos(x, 0))
             .map(|x| brent(x, |x| successor(x, &data.nodes, &data.directions)))
-            .map(|(cycle_length, mut cycle_start, cycle_start_index)|
+            .map(|(cycle_length, cycle_start, cycle_start_index)|
                 (cycle_start_index..cycle_start_index + cycle_length)
                     .fold((cycle_start, vec![]), |(n, mut zs), i| {
                     if n.0.0.0[2] == 'Z' {

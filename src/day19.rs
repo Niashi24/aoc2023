@@ -216,7 +216,7 @@ fn total(ranges: [Range<usize>; 4]) -> usize {
 fn inclusion_exclusion(ranges: &Vec<RangeD<4>>) -> usize {
     (0..ranges.len()).map(|i| {
         let x = ranges.iter().combinations(i + 1).filter_map(|mut s| {
-            let mut intersect = s.pop().unwrap().to_owned();
+            let intersect = s.pop().unwrap().to_owned();
             s.iter().try_fold(intersect, |i, s| i.intersect(s))
                 .map(|x| x.volume())
         }).sum::<usize>() as i64 * if i % 2 == 0 { 1 } else { -1 };

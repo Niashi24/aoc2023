@@ -13,7 +13,7 @@ impl Day<Info> for Day6 {
     fn parse_file(&self, file_content: String) -> Info {
         let mut data = file_content.lines()
             .map(str::split_whitespace)
-            .map(|mut x| x.skip(1)
+            .map(|x| x.skip(1)
                 .map(str::parse)
                 .map(Result::unwrap)
                 .collect()

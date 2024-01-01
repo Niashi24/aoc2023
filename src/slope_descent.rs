@@ -144,9 +144,9 @@ where
     type Output = Vector<N, X>;
     fn sub(self, rhs: Vector<N, X>) -> Self::Output {
         let mut output = self.0;
-        output.iter_mut().enumerate()
+        output.iter_mut()
             .zip(rhs.0)
-            .for_each(|((i, x), y)| *x = *x - y );
+            .for_each(|(x, y)| *x = *x - y );
         Vector(output)
     }
 }

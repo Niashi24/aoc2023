@@ -37,7 +37,7 @@ impl Day<Data> for Day15 {
             let boxed = op.label();
             match op {
                 Operation::Equals(label, value) => {
-                    let mut boxed = &mut boxes[boxed];
+                    let boxed = &mut boxes[boxed];
                     if let Some(pos) = boxed.iter().position(|Lens(s, _)| s == &label) {
                         boxed.get_mut(pos).unwrap().1 = value;
                     } else {
@@ -45,7 +45,7 @@ impl Day<Data> for Day15 {
                     }
                 }
                 Operation::Dash(label) => {
-                    let mut boxed = &mut boxes[boxed];
+                    let boxed = &mut boxes[boxed];
                     if let Some(pos) = boxed.iter().position(|Lens(s, _)| s == &label) {
                         boxed.remove(pos);
                     }

@@ -156,7 +156,7 @@ impl Day<Info> for Day5 {
 
         dbg!(data.transform(82));
 
-        let y = data.maps.iter().fold(ranges, |mut ranges, map| {
+        let y = data.maps.iter().fold(ranges, |ranges, map| {
             let r = ranges.into_iter().flat_map(|a| {
                 let mut to_review = vec![a];
                 let mut final_ranges = vec![];

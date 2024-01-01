@@ -146,7 +146,7 @@ where
     })
 }
 
-fn test_2<IT>(mut it: IT, grid: &Vec<Vec<bool>>) -> bool
+fn test_2<IT>(it: IT, grid: &Vec<Vec<bool>>) -> bool
     where
         IT: Iterator<Item = ((usize, usize), (usize, usize))>
 {
