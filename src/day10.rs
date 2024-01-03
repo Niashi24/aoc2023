@@ -193,16 +193,6 @@ impl Direction {
             Direction::East => if x_range.end != x + 1 { Some((x + 1, y)) } else { None }
         }
     }
-
-    pub(crate) fn transform_range_cycle(&self, pos: (usize, usize), x_range: &Range<usize>, y_range: &Range<usize>) -> Option<(usize, usize)> {
-        let (x, y) = pos;
-        match self {
-            Direction::North => if y_range.start != y { Some((x, y - 1)) } else { None }
-            Direction::South => if y_range.end != y + 1 { Some((x, y + 1)) } else { None }
-            Direction::West => if x_range.start != x { Some((x - 1, y)) } else { None }
-            Direction::East => if x_range.end != x + 1 { Some((x + 1, y)) } else { None }
-        }
-    }
     
     pub(crate) fn transform_i(&self, pos: (i64, i64)) -> (i64, i64) {
         let (x, y) = pos;

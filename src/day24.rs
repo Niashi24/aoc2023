@@ -90,10 +90,9 @@ fn solve(mut hails: [Hail; 4]) -> Option<f64> {
     
     // Initial guess
     let mut X = Matrix4x1::from_element(1.0);
-    
+    // Repeat numerical approximation some amount of times
     for _ in 0..1000 {
-        let O = B + Matrix4x1::from_element(X[0] * X[3] - X[1] * X[2]);
-        X = AINV * O;
+        X = AINV * (B + Matrix4x1::from_element(X[0] * X[3] - X[1] * X[2]));
     }
     let [px, py, vx, vy] = X.data.0[0];
     
@@ -110,7 +109,7 @@ fn solve(mut hails: [Hail; 4]) -> Option<f64> {
 
     let BZ = Matrix2::from([[dvy, dvx], [-dpy, -dpx]]);
     let CZ = Matrix2x1::from([dvy * sz2 - dpy * uz2, dvx * sz1 - dpx * uz1]);
-    let BZInv = BZ.try_inverse()?;
+    let BZInv = BZ.try_inverse().unwrap();
 
     let PZVZ = BZInv * CZ;
     let [pz, vz] = PZVZ.data.0[0];

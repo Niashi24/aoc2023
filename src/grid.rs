@@ -60,7 +60,9 @@ impl<T> Grid<T> {
         }
     }
     
-    
+    pub fn map<X, FN: Fn(T) -> X>(self, func: FN) -> Grid<X> {
+        self.grid.into_iter().map(|x| x.into_iter().map(|x| func(x))).collect()
+    }
 }
 
 pub struct GridIter<'a, T> {
