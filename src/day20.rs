@@ -63,6 +63,41 @@ pub struct Module {
     destinations: Vec<String>,
 }
 
+impl Module {
+    pub fn try_make_cycle(&self, receivers: &HashMap<String, HashSet<String>>, name_to_cycle: &HashMap<String, PulseCycles2>) -> Option<PulseCycles2> {
+        self.can_make_cycle(receivers, name_to_cycle)
+            .then(|| {
+                match self.m_type {
+                    ModuleType::Broadcaster => PulseCycles2::broadcaster(),
+                    ModuleType::FlipFlop { .. } => PulseCycles2::try_make_flip_flop(
+                        &receivers.get(&self.label).unwrap().iter()
+                            .map(|s| name_to_cycle.get(s).unwrap().clone())
+                            .collect_vec()
+                    ).unwrap(),
+                    ModuleType::Conjunction { .. } => PulseCycles2::merge_to_conjunction(
+                        &receivers.get(&self.label).unwrap().iter()
+                            .map(|s| (s.clone(), name_to_cycle.get(s).unwrap().clone()))
+                            .collect_vec()).unwrap()
+                }
+                // todo!()
+            })
+    }
+    
+    pub fn can_make_cycle(&self, receivers: &HashMap<String, HashSet<String>>, name_to_cycle: &HashMap<String, PulseCycles2>) -> bool {
+        match self.m_type {
+            ModuleType::Broadcaster => true,
+            ModuleType::FlipFlop { .. } => {
+                receivers.get(&self.label).unwrap()
+                    .iter().all(|s| name_to_cycle.get(s).unwrap_or(&PulseCycles2::default()).lows.is_some())
+            }
+            ModuleType::Conjunction { .. } => {
+                receivers.get(&self.label).unwrap()
+                    .iter().all(|s| name_to_cycle.get(s).unwrap_or(&PulseCycles2::default()).has_both_cycles())
+            }
+        }
+    }
+}
+
 impl Display for Module {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}: {} -> {}", self.label, self.m_type, self.destinations.iter().join(", "))
@@ -252,57 +287,27 @@ impl Day<Data> for Day20 {
         
         
         // let x: HashMap<String, PulseCycle> = HashMap::from([("broadcaster".to_owned(), PulseCycle::broadcaster())]);
-        let mut name_to_cycle = HashMap::new();
-        let mut to_visit = data.values().cloned().collect::<VecDeque<_>>();
-        while let Some(module) = to_visit.pop_front() {
-            // println!("{}", &module.label);
-            match module.m_type {
-                ModuleType::Broadcaster => {
-                    name_to_cycle.insert(module.label, PulseCycle::broadcaster());
+        let mut name_to_cycle = data.keys().map(|s| (s.clone(), PulseCycles2::default())).collect();
+        let mut to_visit = vec![data.get(&String::from("broadcaster")).unwrap().clone()];
+        while let Some(module) = to_visit.pop() {
+            println!("{}", module.label);
+            if let Some(cycle) = module.try_make_cycle(&receivers, &name_to_cycle) {
+                println!("success! {:?}", cycle);
+                if module.label == "rx" && cycle.lows.is_some() {
+                    return cycle.lows.unwrap().times[0] as i64;
                 }
-                ModuleType::FlipFlop { .. } => {
-                    let x = receivers.get(&module.label).unwrap();
-                    if x.iter().all(|x| name_to_cycle.contains_key(x)) {
-                        let cycles = x.iter()
-                            .map(|x| name_to_cycle.get(x).unwrap().clone())
-                            .collect_vec();
-                        
-                        name_to_cycle.insert(
-                            module.label,
-                            PulseCycle::merge_to_flip_flop(cycles)
-                        );
-                    } else {
-                        to_visit.push_back(module);
-                    }
-                }
-                ModuleType::Conjunction { .. } => {
-                    let x = receivers.get(&module.label).unwrap();
-                    if x.iter().all(|x| name_to_cycle.contains_key(x)) {
-                        let cycles = x.iter()
-                            .map(|x| (x.clone(), name_to_cycle.get(x).unwrap().clone()))
-                            .collect_vec();
-                        
-                        let pulse_cycle = PulseCycle::merge_to_conjunction(&cycles);
-                        if module.label == "rx" {
-                            return *pulse_cycle.lows.first().unwrap() as i64;
-                        }
-
-                        name_to_cycle.insert(
-                            module.label,
-                            pulse_cycle
-                        );
-                    } else {
-                        to_visit.push_back(module);
-                    }
-                }
+                
+                name_to_cycle.insert(module.label.clone(), cycle);
+                to_visit.extend(module.destinations.iter().map(|r| data.get(r).unwrap().clone()))
             }
         }
-        
-        *name_to_cycle.get(&String::from("rx"))
-            .and_then(|x| x.lows.first())
-            .unwrap() as i64
+        // 
+        // *name_to_cycle.get(&String::from("rx"))
+        //     .and_then(|x| x.lows.first())
+        //     .unwrap() as i64
         
         // todo!()
+        panic!("Exited without finding rx?")
     }
 }
 
@@ -337,13 +342,23 @@ struct PulseCycle {
     lows: Vec<usize>,
 }
 
-#[derive(Eq, PartialEq, Clone, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug, Default)]
 struct PulseCycles2 {
     highs: Option<Cycle>,
     lows: Option<Cycle>,
 }
 
 impl PulseCycles2 {
+    pub fn broadcaster() -> Self {
+        Self {
+            highs: None,
+            lows: Some(Cycle {
+                length: 1,
+                times: vec![0],
+            }),
+        }
+    }
+    
     pub fn try_get_cycle_length(&self) -> Option<usize> {
         match (&self.highs, &self.lows) {
             (Some(Cycle {length: a, ..}), Some(Cycle {length: b, ..})) => Some(a.lcm(b)),
@@ -415,6 +430,10 @@ impl PulseCycles2 {
             highs: self.highs.clone().map(|s| s.repeat(length / s.length)),
             lows: self.lows.clone().map(|s| s.repeat(length / s.length)),
         }
+    }
+    
+    pub fn has_both_cycles(&self) -> bool {
+        self.highs.is_some() && self.lows.is_some()
     }
     
     // pub fn make_flip_flop
