@@ -4,6 +4,7 @@ pub struct Day20;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt::{Display, Formatter};
 use std::{thread, time};
+use colored::Colorize;
 use itertools::{Itertools, join};
 use num::Integer;
 use pathfinding::prelude::{brent, topological_sort};
@@ -64,37 +65,16 @@ pub struct Module {
 }
 
 impl Module {
-    pub fn try_make_cycle(&self, receivers: &HashMap<String, HashSet<String>>, name_to_cycle: &HashMap<String, PulseCycles2>) -> Option<PulseCycles2> {
-        self.can_make_cycle(receivers, name_to_cycle)
-            .then(|| {
-                match self.m_type {
-                    ModuleType::Broadcaster => PulseCycles2::broadcaster(),
-                    ModuleType::FlipFlop { .. } => PulseCycles2::try_make_flip_flop(
-                        &receivers.get(&self.label).unwrap().iter()
-                            .map(|s| name_to_cycle.get(s).unwrap().clone())
-                            .collect_vec()
-                    ).unwrap(),
-                    ModuleType::Conjunction { .. } => PulseCycles2::merge_to_conjunction(
-                        &receivers.get(&self.label).unwrap().iter()
-                            .map(|s| (s.clone(), name_to_cycle.get(s).unwrap().clone()))
-                            .collect_vec()).unwrap()
-                }
-                // todo!()
-            })
-    }
-    
-    pub fn can_make_cycle(&self, receivers: &HashMap<String, HashSet<String>>, name_to_cycle: &HashMap<String, PulseCycles2>) -> bool {
-        match self.m_type {
-            ModuleType::Broadcaster => true,
-            ModuleType::FlipFlop { .. } => {
-                receivers.get(&self.label).unwrap()
-                    .iter().all(|s| name_to_cycle.get(s).unwrap_or(&PulseCycles2::default()).lows.is_some())
-            }
-            ModuleType::Conjunction { .. } => {
-                receivers.get(&self.label).unwrap()
-                    .iter().all(|s| name_to_cycle.get(s).unwrap_or(&PulseCycles2::default()).has_both_cycles())
-            }
-        }
+    pub fn label_fmt(&self) -> String {
+        format!(
+            "{}{}",
+            match self.m_type {
+                ModuleType::Broadcaster => "",
+                ModuleType::FlipFlop { .. } => "%",
+                ModuleType::Conjunction { .. } => "&",
+            },
+            self.label
+        )
     }
 }
 
@@ -156,52 +136,23 @@ fn step_modules(mut data: Data) -> (Data, (usize, usize)) {
     (data, (low, high))
 }
 
-fn step_modules_2(mut data: Data) -> (Data, bool) {
+fn step_modules_2(mut data: Data) -> (Data, Vec<Pulse>) {
     let mut pulses = VecDeque::from([("broadcaster".to_owned(), Pulse::new("broadcaster".to_owned(), false))]);
+    
+    let mut all = vec![];
     while let Some((to, pulse)) = pulses.pop_front() {
-        let Some(module) = data.get_mut(&to) else { 
-            if to == "rx" && !pulse.pulse {
-                return (data, true);
-            }
-            continue;
-        };
+        let Some(module) = data.get_mut(&to) else { continue; };
         if let Some(new_pulse) = module.process_signal(pulse) {
+            all.push(new_pulse.clone());
             for dest in module.destinations.iter().cloned() {
                 pulses.push_back((dest.clone(), new_pulse.clone()));
             }
         }
     }
 
-    (data, false)
+    (data, all)
 }
 
-fn step_modules_3(mut data: Data) -> Vec<String> {
-    const FRACTION: f32 = 1.0;
-    let min = (data.len() as f32 * FRACTION) as usize;
-    let mut first_pulses = vec![];
-    let mut pulses = VecDeque::from([("broadcaster".to_owned(), Pulse::new("broadcaster".to_owned(), false))]);
-    while let Some((to, pulse)) = pulses.pop_front() {
-        if !first_pulses.contains(&to) { 
-            first_pulses.push(to.clone());
-            if first_pulses.len() >= min {
-                return first_pulses;
-            }
-        }
-        let Some(module) = data.get_mut(&to) else {
-            if to == "rx" && !pulse.pulse {
-                return first_pulses;
-            }
-            continue;
-        };
-        if let Some(new_pulse) = module.process_signal(pulse) {
-            for dest in module.destinations.iter().cloned() {
-                pulses.push_back((dest.clone(), new_pulse.clone()));
-            }
-        }
-    }
-
-    first_pulses
-}
 
 impl Day<Data> for Day20 {
     fn parse_file(&self, file_content: String) -> Data {
@@ -277,345 +228,44 @@ impl Day<Data> for Day20 {
                     .or_insert(HashSet::from([name.clone()]));
             }
         }
-        
+
         for x in data.values() {
             for y in x.destinations.iter() {
-                println!("{} {}", x.label, y);
+                println!("{} {}", x.label_fmt(), data.get(y).map(|s| s.label_fmt()).unwrap_or(y.clone()));
             }
         }
         
-        
-        
-        // let x: HashMap<String, PulseCycle> = HashMap::from([("broadcaster".to_owned(), PulseCycle::broadcaster())]);
-        let mut name_to_cycle = data.keys().map(|s| (s.clone(), PulseCycles2::default())).collect();
-        let mut to_visit = vec![data.get(&String::from("broadcaster")).unwrap().clone()];
-        while let Some(module) = to_visit.pop() {
-            println!("{}", module.label);
-            if let Some(cycle) = module.try_make_cycle(&receivers, &name_to_cycle) {
-                println!("success! {:?}", cycle);
-                if module.label == "rx" && cycle.lows.is_some() {
-                    return cycle.lows.unwrap().times[0] as i64;
-                }
-                
-                name_to_cycle.insert(module.label.clone(), cycle);
-                to_visit.extend(module.destinations.iter().map(|r| data.get(r).unwrap().clone()))
-            }
+        let mut record = vec![];
+        let mut data = data.clone();
+        for _ in 0..50 {
+            let step;
+            (data, step) = step_modules_2(data);
+            record.push(step);
         }
-        // 
-        // *name_to_cycle.get(&String::from("rx"))
-        //     .and_then(|x| x.lows.first())
-        //     .unwrap() as i64
         
-        // todo!()
+        print!("  ");
+        for t in 0..record.len() {
+            print!("{: ^4}", t);
+        }
+        println!();
+        
+        let mut modules = data.keys().cloned().collect_vec();
+        modules.sort_unstable();
+        
+        for module in &modules {
+            print!("{}", module[0..2].to_owned());
+            for t in 0..record.len() {
+                let num_high = record[t].iter().filter(|p| &p.from == module && p.pulse).count();
+                let num_low = record[t].iter().filter(|p| &p.from == module && !p.pulse).count();
+                print!("{}{}",
+                    format!("{: >2}", num_low).blue(),
+                    format!("{: <2}", num_high).red(),
+                );
+                // let num_low = record[t]
+            }
+            println!();
+        }
+        
         panic!("Exited without finding rx?")
     }
-}
-
-fn print_data(data: &Data) {
-    print!("\x1B[2J\x1B[1;1H");
-    println!("-------------");
-    let mut modules = data.keys().cloned().collect::<Vec<_>>();
-    modules.sort_unstable();
-    
-    for module in modules {
-        let module = data.get(&module).unwrap();
-        println!("{}", module);
-    }
-    thread::sleep(time::Duration::from_millis(100));
-}
-
-fn print_data_subset(data: &Data, modules: &Vec<String>) {
-    print!("\x1B[2J\x1B[1;1H");
-    println!("-------------");
-    for module in modules {
-        let Some(module) = data.get(module) else { continue; };
-        println!("{}", module);
-    }
-    thread::sleep(time::Duration::from_millis(500));
-}
-
-
-#[derive(Eq, PartialEq, Clone, Debug)]
-struct PulseCycle {
-    length: usize,
-    highs: Vec<usize>,
-    lows: Vec<usize>,
-}
-
-#[derive(Eq, PartialEq, Clone, Debug, Default)]
-struct PulseCycles2 {
-    highs: Option<Cycle>,
-    lows: Option<Cycle>,
-}
-
-impl PulseCycles2 {
-    pub fn broadcaster() -> Self {
-        Self {
-            highs: None,
-            lows: Some(Cycle {
-                length: 1,
-                times: vec![0],
-            }),
-        }
-    }
-    
-    pub fn try_get_cycle_length(&self) -> Option<usize> {
-        match (&self.highs, &self.lows) {
-            (Some(Cycle {length: a, ..}), Some(Cycle {length: b, ..})) => Some(a.lcm(b)),
-            (_, _) => None
-        }
-    }
-    
-    pub fn try_make_flip_flop(parents: &Vec<Self>) -> Option<Self> {
-        parents.iter().all(|x| x.lows.is_some())
-            .then(|| {
-                let mut cycle = parents.iter().map(|x| x.lows.clone().unwrap())
-                    .reduce(|a, b| a.merge(&b)).unwrap();
-                if cycle.length.is_odd() { cycle = cycle.repeat(2); }
-                let length = cycle.length;
-                let (highs, lows) = cycle.times.chunks_exact(2).map(|x| (x[0], x[1])).unzip();
-                
-                Self {
-                    highs: Some(Cycle { length, times: highs }),
-                    lows: Some(Cycle { length, times: lows }),
-                }
-            })
-    }
-
-    pub fn try_to_pulses(&self, name: &String) -> Option<Vec<(Pulse, usize)>> {
-        let length = self.try_get_cycle_length()?;
-        let highs = self.highs.clone()
-            .map(|highs| highs.repeat(length / highs.length))?;
-        let lows = self.lows.clone()
-            .map(|lows| lows.repeat(length / lows.length))?;
-        Some(highs.times.iter()
-            .map(|t| (Pulse { from: name.clone(), pulse: true }, *t))
-            .merge_by(
-                lows.times.iter()
-                    .map(|t| (Pulse { from: name.clone(), pulse: false }, *t)),
-                |a, b| a.1 >= b.1
-            ).collect())
-    }
-    
-    pub fn merge_to_conjunction(parents: &Vec<(String, Self)>) -> Option<Self> {
-        let cycle_length = parents.iter()
-            .map(|r| r.1.try_get_cycle_length().unwrap())
-            .reduce(|a, b| a.lcm(&b)).unwrap();
-        let mut x = parents.iter()
-            .flat_map(|(name, cycle)| cycle.repeat_to_length(cycle_length).try_to_pulses(name).unwrap())
-            .collect_vec();
-        x.sort_by_key(|a| a.1);
-    
-        let mut memory = parents.iter().map(|s| {
-            (s.0.clone(), false)
-        }).collect::<HashMap<_, _>>();
-    
-        let mut highs = vec![];
-        let mut lows = vec![];
-    
-        for (Pulse { from, pulse }, t) in x {
-            memory.insert(from, pulse);
-            let output = memory.values().all(|x| x == &true);
-            (if output { &mut highs } else { &mut lows }).push(t);
-        }
-    
-        Some(Self {
-            highs: Some(Cycle::new(cycle_length, highs)),
-            lows: Some(Cycle::new(cycle_length, lows)),
-        })
-    }
-    
-    pub fn repeat_to_length(&self, length: usize) -> Self {
-        Self {
-            highs: self.highs.clone().map(|s| s.repeat(length / s.length)),
-            lows: self.lows.clone().map(|s| s.repeat(length / s.length)),
-        }
-    }
-    
-    pub fn has_both_cycles(&self) -> bool {
-        self.highs.is_some() && self.lows.is_some()
-    }
-    
-    // pub fn make_flip_flop
-}
-
-#[derive(Eq, PartialEq, Clone, Debug)]
-struct Cycle {
-    length: usize,
-    times: Vec<usize>
-}
-
-impl Cycle {
-    pub fn new(length: usize, times: Vec<usize>) -> Self {
-        Self {
-            length,
-            times,
-        }
-    }
-    
-    pub fn merge(&self, other: &Self) -> Self {
-        let length = self.length.lcm(&other.length);
-        let c1 = self.repeat(length / self.length);
-        let c2 = other.repeat(length / other.length);
-        
-        Self {
-            length,
-            times: c1.times.into_iter().merge(c2.times).collect_vec(),
-        }
-    }
-    
-    pub fn repeat(&self, n: usize) -> Self {
-        Self {
-            length: self.length * n,
-            times: (0..n).flat_map(move |r|
-                (0..self.times.len()).map(move |i| self.times[i] + r * self.length))
-                .collect_vec(),
-        }
-    }
-    
-    pub fn to_pulses(&self, name: &String, pulse: bool) -> Vec<(Pulse, usize)> {
-        self.times.iter()
-            .map(|t| (Pulse { from: name.clone(), pulse }, *t))
-            .collect()
-    }
-}
-
-impl PulseCycle {
-    pub fn broadcaster() -> Self {
-        Self {
-            length: 1,
-            highs: vec![],
-            lows: vec![0],
-        }
-    }
-
-    pub fn merge_to_flip_flop(parents: Vec<Self>) -> Self {
-        let total = parents.into_iter().reduce(PulseCycle::merge).unwrap();
-        total.to_flip_flop()
-    }
-
-    pub fn to_flip_flop(&self) -> Self {
-        let (lows, length) = if self.lows.len().is_odd()
-        { (self.repeat(2).lows, self.length * 2) }
-        else { (self.lows.clone(), self.length) };
-
-        let (highs, lows) = lows.chunks_exact(2).map(|x| (x[0], x[1])).unzip();
-        Self {
-            length,
-            highs,
-            lows,
-        }
-    }
-
-    pub fn merge_to_conjunction(parents: &Vec<(String, PulseCycle)>) -> Self {
-        let cycle_length = parents.iter()
-            .map(|r| r.1.length)
-            .reduce(|a, b| a.lcm(&b)).unwrap();
-        let mut x = parents.iter()
-            .flat_map(|(name, cycle)| cycle.repeat(cycle_length / cycle.length).to_pulses(name))
-            .collect_vec();
-        x.sort_by_key(|a| a.1);
-        
-        let mut memory = parents.iter().map(|s| {
-            (s.0.clone(), false)
-        }).collect::<HashMap<_, _>>();
-        
-        let mut highs = vec![];
-        let mut lows = vec![];
-        
-        for (Pulse { from, pulse }, t) in x {
-            memory.insert(from, pulse);
-            let output = memory.values().all(|x| x == &true);
-            (if output { &mut highs } else { &mut lows }).push(t);
-        }
-        
-        Self {
-            length: cycle_length,
-            highs,
-            lows,
-        }
-    }
-
-    pub fn merge(self, other: Self) -> Self {
-        let total_length = self.length.lcm(&other.length);
-        let num_repeats_self = total_length / self.length;
-        let num_repeats_other = total_length / other.length;
-
-        let a = self.repeat(num_repeats_self);
-        let b = other.repeat(num_repeats_other);
-
-        Self {
-            length: total_length,
-            highs: a.highs.into_iter().merge(b.highs.into_iter()).collect_vec(),
-            lows: a.lows.into_iter().merge(b.lows.into_iter()).collect_vec(),
-        }
-    }
-    
-    fn to_pulses(self, name: &String) -> Vec<(Pulse, usize)> {
-        let mut lows = self.lows.into_iter()
-            .map(|x| (Pulse { from: name.clone(), pulse: false }, x))
-            .collect_vec();
-        let mut highs = self.highs.into_iter()
-            .map(|x| (Pulse { from: name.clone(), pulse: true }, x))
-            .collect_vec();
-        
-        let mut x = lows;
-        x.append(&mut highs);
-        x.sort_by_key(|a| a.1);
-        x
-    }
-
-    fn repeat(&self, n: usize) -> Self {
-        fn repeat_cycle(vec: &Vec<usize>, length: usize, n: usize) -> Vec<usize> {
-            let mut out = Vec::with_capacity(vec.len() * n);
-
-            for r in 0..n {
-                for i in 0..vec.len() {
-                    out.push(vec[i] + r * length);
-                }
-            }
-
-            out
-        }
-
-        Self {
-            length: self.length * n,
-            highs: repeat_cycle(&self.highs, self.length, n),
-            lows: repeat_cycle(&self.lows, self.length, n),
-        }
-    }
-}
-
-#[test]
-fn test_pulse_cycle() {
-    let t = PulseCycle::broadcaster();
-    assert_eq!(t.repeat(2), PulseCycle {
-        length: 2,
-        highs: vec![],
-        lows: vec![0, 1],
-    });
-
-    assert_eq!(t.to_flip_flop(), PulseCycle {
-        length: 2,
-        highs: vec![0],
-        lows: vec![1],
-    });
-
-    assert_eq!(t.to_flip_flop().to_flip_flop(), PulseCycle {
-        length: 4,
-        highs: vec![1],
-        lows: vec![3],
-    });
-    
-    dbg!(PulseCycle::merge_to_conjunction(&Vec::from([("a".to_owned(), PulseCycle {
-        length: 5,
-        highs: vec![3],
-        lows: vec![1,3],
-    }),
-        ("b".to_owned(), PulseCycle {
-            length: 4,
-            highs: vec![1,2],
-            lows: vec![0,3],
-        })
-    ])));
 }
