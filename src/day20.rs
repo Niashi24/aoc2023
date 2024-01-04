@@ -7,7 +7,7 @@ use std::{thread, time};
 use colored::Colorize;
 use itertools::{Itertools, join};
 use num::Integer;
-use pathfinding::prelude::{brent, topological_sort};
+use pathfinding::prelude::{bfs_reach, brent, topological_sort};
 use crate::day::Day;
 
 #[derive(Eq, PartialEq, Clone)]
@@ -56,12 +56,18 @@ impl Display for ModuleType {
     }
 }
 
-#[derive(Eq, PartialEq, Clone)]
+#[derive(Eq, Clone)]
 #[derive(Debug)]
 pub struct Module {
     m_type: ModuleType,
     label: String,
     destinations: Vec<String>,
+}
+
+impl PartialEq for Module {
+    fn eq(&self, other: &Self) -> bool {
+        self.label == other.label && self.m_type == other.m_type
+    }
 }
 
 impl Module {
@@ -134,6 +140,21 @@ fn step_modules(mut data: Data) -> (Data, (usize, usize)) {
     }
     
     (data, (low, high))
+}
+
+fn step_modules_raw(mut data: Data) -> Data {
+    let mut pulses = VecDeque::from([("broadcaster".to_owned(), Pulse::new("broadcaster".to_owned(), false))]);
+
+    while let Some((to, pulse)) = pulses.pop_front() {
+        let Some(module) = data.get_mut(&to) else { continue; };
+        if let Some(new_pulse) = module.process_signal(pulse) {
+            for dest in module.destinations.iter().cloned() {
+                pulses.push_back((dest.clone(), new_pulse.clone()));
+            }
+        }
+    }
+
+    data
 }
 
 fn step_modules_2(mut data: Data) -> (Data, Vec<Pulse>) {
@@ -220,52 +241,72 @@ impl Day<Data> for Day20 {
     fn part_2(&self, data: &Data) -> i64 {
         if !data.values().any(|s| s.destinations.contains(&"rx".to_owned())) { return 0; }
         
-        let mut receivers: HashMap<String, HashSet<String>> = HashMap::new();
+        let mut parents: HashMap<String, HashSet<String>> = HashMap::new();
         for (name, module) in data.iter() {
             for destination in module.destinations.iter() {
-                receivers.entry(destination.clone())
+                parents.entry(destination.clone())
                     .and_modify(|x| { x.insert(name.clone()); })
                     .or_insert(HashSet::from([name.clone()]));
             }
         }
-
-        for x in data.values() {
-            for y in x.destinations.iter() {
-                println!("{} {}", x.label_fmt(), data.get(y).map(|s| s.label_fmt()).unwrap_or(y.clone()));
-            }
+        
+        let dependencies: HashMap<String, HashSet<String>> = parents.keys()
+            .map(|module| {
+                let x = bfs_reach(module, |x| {
+                    parents.get(*x).iter().flat_map(|x| x.iter()).collect::<Vec<_>>()
+                });
+                (module.clone(), x.cloned().collect())
+            }).collect();
+        
+        for (module, dependencies) in &dependencies {
+            println!("{}: {:?}", module, dependencies.clone().into_iter().sorted().collect_vec());
         }
         
-        let mut record = vec![];
+        let mut cur_dependencies = dependencies.clone();
+        
+        let mut cycles: HashMap<String, (Data, usize, usize)> = HashMap::new();
+        
+        let mut records: HashMap<String, Vec<Data>> = HashMap::new();
+        // let mut records: Vec<(HashMap<String, Data>)> = vec![];
         let mut data = data.clone();
-        for _ in 0..50 {
-            let step;
-            (data, step) = step_modules_2(data);
-            record.push(step);
-        }
-        
-        print!("  ");
-        for t in 0..record.len() {
-            print!("{: ^4}", t);
-        }
-        println!();
-        
-        let mut modules = data.keys().cloned().collect_vec();
-        modules.sort_unstable();
-        
-        for module in &modules {
-            print!("{}", module[0..2].to_owned());
-            for t in 0..record.len() {
-                let num_high = record[t].iter().filter(|p| &p.from == module && p.pulse).count();
-                let num_low = record[t].iter().filter(|p| &p.from == module && !p.pulse).count();
-                print!("{}{}",
-                    format!("{: >2}", num_low).blue(),
-                    format!("{: <2}", num_high).red(),
-                );
-                // let num_low = record[t]
+        for i in 0..5000 {
+            for (name, subset) in cur_dependencies.iter()
+                .map(|(module, dependencies)| {
+                    (module.clone(), create_data_subset(dependencies, &data))
+                }).collect_vec() {
+                
+                let x = records.entry(name.clone())
+                    .or_insert(vec![]);
+                if let Some((x, _)) = x.iter().enumerate().find(|(_, d)| d == &&subset) {
+                    cur_dependencies.remove(&name);
+                    cycles.insert(name, (subset, dbg!(x), dbg!(i - x)));
+                } else {
+                    x.push(subset);
+                }
             }
-            println!();
+            
+            data = step_modules_raw(data);
+        }
+        
+        for (module, (node, start, length)) in cycles {
+            println!("{}: {} {}", module, start, length);
         }
         
         panic!("Exited without finding rx?")
     }
 }
+
+fn create_data_subset(modules: &HashSet<String>, data: &Data) -> Data {
+    let mut x = data.clone();
+    x.retain(|x, _| modules.contains(x));
+    x
+}
+
+// Knowledge Required:
+// Conjunction:
+//      Some Low => Some High
+//      All Low => All High
+//      Some High and All Low => Some High and All Low
+// Flip-flop:
+//      All Low => All High and Low
+//      No High Required

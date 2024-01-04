@@ -9,8 +9,6 @@
   <component name="ChangeListManager">
     <list default="true" id="bd499cbf-07cd-4017-a64a-1be3f857a455" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/day20.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/day20.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -78,7 +76,7 @@
       <recent name="D:\Unity Projects\aoc2023\input" />
     </key>
   </component>
-  <component name="RunManager" selected="Cargo.Run">
+  <component name="RunManager" selected="Cargo.Run (Release)">
     <configuration name="Run (Release)" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
       <option name="command" value="run --release" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
@@ -245,7 +243,7 @@
       <workItem from="1703819815518" duration="7278000" />
       <workItem from="1703956681046" duration="14627000" />
       <workItem from="1703989285106" duration="19637000" />
-      <workItem from="1704138132104" duration="49308000" />
+      <workItem from="1704138132104" duration="56170000" />
     </task>
     <servers />
   </component>
