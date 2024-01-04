@@ -25,8 +25,6 @@ use crate::day6::Day6;
 use crate::day7::Day7;
 use crate::day8::Day8;
 use crate::day9::Day9;
-use crate::ranges::RangeD;
-use crate::slope_descent::test_grad_descent;
 
 mod vector;
 mod day;
@@ -62,7 +60,7 @@ mod day25;
 mod graph;
 
 fn main() -> std::io::Result<()> {
-    test_day23()?;
+    test_day20()?;
     Ok(())
 }
 

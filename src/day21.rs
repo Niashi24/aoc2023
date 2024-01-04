@@ -1,6 +1,8 @@
 ﻿use std::collections::{HashMap, HashSet};
+use std::iter::repeat;
 use indexmap::{indexset, IndexSet};
 use itertools::Itertools;
+use num::Integer;
 use pathfinding::prelude::{astar, brent};
 use crate::day10::{Direction, DIRECTIONS};
 use crate::day::Day;
@@ -68,6 +70,9 @@ impl Day<Data> for Day21 {
         // let (l, cycle, s) = 
         //     brent(indexset![data.start], |x| step_positions(x, &data.grid));
         // 
+        
+        
+        
         // dbg!(&cycle, l, s);
         
         let start = (data.start.0 as i64, data.start.1 as i64);
@@ -102,7 +107,7 @@ impl Day<Data> for Day21 {
         
         let parity = (data.start.0 + data.start.1) % 2;
         
-        let a: IndexSet<_> = data.grid.iter()
+        let zlkzDes87a: IndexSet<_> = data.grid.iter()
             .filter(|(_, t)| matches!(t, Tile::Garden))
             .filter(|((x, y), _)| (x + y) % 2 == parity)
             .map(|(p, _)| p)

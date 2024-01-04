@@ -9,10 +9,8 @@
   <component name="ChangeListManager">
     <list default="true" id="bd499cbf-07cd-4017-a64a-1be3f857a455" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/day10.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/day10.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/day23.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/day23.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/day24.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/day24.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/grid.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/grid.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/day20.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/day20.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/day21.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/day21.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -50,6 +48,9 @@
     "Cargo.Run aoc2023.executor": "Run",
     "Cargo.Run.executor": "Run",
     "Cargo.Test day15::test_label.executor": "Run",
+    "Cargo.Test day20::test_pulse_cycle.executor": "Run",
+    "Cargo.Test day21::test_pulse_cycle.executor": "Run",
+    "Cargo.Test day21::test_repeat.executor": "Run",
     "Cargo.Test day5::test_offset.executor": "Run",
     "Cargo.Test day8::main.executor": "Run",
     "Cargo.Test day8::test_crthm.executor": "Run",
@@ -77,26 +78,9 @@
       <recent name="D:\Unity Projects\aoc2023\input" />
     </key>
   </component>
-  <component name="RunManager" selected="Cargo.Run (Release)">
+  <component name="RunManager" selected="Cargo.Run">
     <configuration name="Run (Release)" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
       <option name="command" value="run --release" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <option name="emulateTerminal" value="true" />
-      <option name="channel" value="DEFAULT" />
-      <option name="requiredFeatures" value="true" />
-      <option name="allFeatures" value="false" />
-      <option name="withSudo" value="false" />
-      <option name="buildTarget" value="REMOTE" />
-      <option name="backtrace" value="SHORT" />
-      <envs />
-      <option name="isRedirectInput" value="false" />
-      <option name="redirectInputPath" value="" />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Run aoc2023" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="run --package aoc2023 --bin aoc2023" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="emulateTerminal" value="true" />
       <option name="channel" value="DEFAULT" />
@@ -146,8 +130,8 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test day8::main" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package aoc2023 --bin aoc2023 day8::main -- --exact" />
+    <configuration name="Test day20::test_pulse_cycle" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package aoc2023 --bin aoc2023 day20::test_pulse_cycle -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="emulateTerminal" value="true" />
       <option name="channel" value="DEFAULT" />
@@ -163,8 +147,25 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test day8::test_crthm" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="command" value="test --package aoc2023 --bin aoc2023 day8::test_crthm -- --exact" />
+    <configuration name="Test day21::test_pulse_cycle" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package aoc2023 --bin aoc2023 day21::test_pulse_cycle -- --exact" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test day21::test_repeat" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package aoc2023 --bin aoc2023 day21::test_repeat -- --exact" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="emulateTerminal" value="true" />
       <option name="channel" value="DEFAULT" />
@@ -200,19 +201,19 @@
     <list>
       <item itemvalue="Cargo.Run (Release)" />
       <item itemvalue="Cargo.Run" />
-      <item itemvalue="Cargo.Run aoc2023" />
+      <item itemvalue="Cargo.Test day20::test_pulse_cycle" />
+      <item itemvalue="Cargo.Test day21::test_pulse_cycle" />
+      <item itemvalue="Cargo.Test day21::test_repeat" />
       <item itemvalue="Cargo.Test day15::test_label" />
-      <item itemvalue="Cargo.Test day8::main" />
-      <item itemvalue="Cargo.Test day8::test_crthm" />
       <item itemvalue="Cargo.Test day9::test_eval" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Cargo.Test day20::test_pulse_cycle" />
+        <item itemvalue="Cargo.Test day21::test_pulse_cycle" />
+        <item itemvalue="Cargo.Test day21::test_repeat" />
         <item itemvalue="Cargo.Test day15::test_label" />
         <item itemvalue="Cargo.Test day9::test_eval" />
-        <item itemvalue="Cargo.Test day8::main" />
-        <item itemvalue="Cargo.Test day8::test_crthm" />
-        <item itemvalue="Cargo.Run aoc2023" />
       </list>
     </recent_temporary>
   </component>
@@ -244,7 +245,7 @@
       <workItem from="1703819815518" duration="7278000" />
       <workItem from="1703956681046" duration="14627000" />
       <workItem from="1703989285106" duration="19637000" />
-      <workItem from="1704138132104" duration="23032000" />
+      <workItem from="1704138132104" duration="44177000" />
     </task>
     <servers />
   </component>
