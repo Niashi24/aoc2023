@@ -17,6 +17,15 @@ pub enum Tile {
     Rocks
 }
 
+impl Tile {
+    pub fn is_garden(&self) -> bool {
+        match self {
+            Tile::Garden => true,
+            Tile::Rocks => false,
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub struct Data {
     grid: Grid<Tile>,
@@ -71,7 +80,7 @@ impl Day<Data> for Day21 {
         //     brent(indexset![data.start], |x| step_positions(x, &data.grid));
         // 
         
-        
+        let num_steps = 26501365;
         
         // dbg!(&cycle, l, s);
         
@@ -107,8 +116,11 @@ impl Day<Data> for Day21 {
         
         let parity = (data.start.0 + data.start.1) % 2;
         
-        let zlkzDes87a: IndexSet<_> = data.grid.iter()
-            .filter(|(_, t)| matches!(t, Tile::Garden))
+        let dist_to_corner = data.grid.w / 2 + data.grid.h / 2;
+        let diamond_width = (data.grid.w / 2 + data.grid.w);
+        
+        let positions: IndexSet<_> = data.grid.iter()
+            .filter(|(_, t)| t.is_garden())
             .filter(|((x, y), _)| (x + y) % 2 == parity)
             .map(|(p, _)| p)
             .collect();

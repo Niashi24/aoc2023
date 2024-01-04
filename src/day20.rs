@@ -142,21 +142,6 @@ fn step_modules(mut data: Data) -> (Data, (usize, usize)) {
     (data, (low, high))
 }
 
-fn step_modules_raw(mut data: Data) -> Data {
-    let mut pulses = VecDeque::from([("broadcaster".to_owned(), Pulse::new("broadcaster".to_owned(), false))]);
-
-    while let Some((to, pulse)) = pulses.pop_front() {
-        let Some(module) = data.get_mut(&to) else { continue; };
-        if let Some(new_pulse) = module.process_signal(pulse) {
-            for dest in module.destinations.iter().cloned() {
-                pulses.push_back((dest.clone(), new_pulse.clone()));
-            }
-        }
-    }
-
-    data
-}
-
 fn step_modules_2(mut data: Data) -> (Data, Vec<Pulse>) {
     let mut pulses = VecDeque::from([("broadcaster".to_owned(), Pulse::new("broadcaster".to_owned(), false))]);
     
@@ -241,72 +226,37 @@ impl Day<Data> for Day20 {
     fn part_2(&self, data: &Data) -> i64 {
         if !data.values().any(|s| s.destinations.contains(&"rx".to_owned())) { return 0; }
         
-        let mut parents: HashMap<String, HashSet<String>> = HashMap::new();
-        for (name, module) in data.iter() {
-            for destination in module.destinations.iter() {
-                parents.entry(destination.clone())
-                    .and_modify(|x| { x.insert(name.clone()); })
-                    .or_insert(HashSet::from([name.clone()]));
-            }
-        }
-        
-        let dependencies: HashMap<String, HashSet<String>> = parents.keys()
-            .map(|module| {
-                let x = bfs_reach(module, |x| {
-                    parents.get(*x).iter().flat_map(|x| x.iter()).collect::<Vec<_>>()
-                });
-                (module.clone(), x.cloned().collect())
-            }).collect();
-        
-        for (module, dependencies) in &dependencies {
-            println!("{}: {:?}", module, dependencies.clone().into_iter().sorted().collect_vec());
-        }
-        
-        let mut cur_dependencies = dependencies.clone();
-        
-        let mut cycles: HashMap<String, (Data, usize, usize)> = HashMap::new();
-        
-        let mut records: HashMap<String, Vec<Data>> = HashMap::new();
-        // let mut records: Vec<(HashMap<String, Data>)> = vec![];
+        // yet another problem where the only (sane) way to solve it
+        // is to make an assumption that wasn't listed before... sigh
         let mut data = data.clone();
-        for i in 0..5000 {
-            for (name, subset) in cur_dependencies.iter()
-                .map(|(module, dependencies)| {
-                    (module.clone(), create_data_subset(dependencies, &data))
-                }).collect_vec() {
+        let last_conjunction = "dg";
+        let mut needed = data.iter()
+            .filter(|(_, m)| m.destinations.contains(&String::from(last_conjunction)))
+            .map(|(n, _)| n.clone()).collect_vec();
+        let mut ans: i64 = 1;
+        
+        for i in 1.. {
+            let mut pulses = VecDeque::from([("broadcaster".to_owned(), 
+                                              Pulse::new("".to_owned(), false))]);
+
+            while let Some((to, pulse)) = pulses.pop_front() {
+                if to == last_conjunction && pulse.pulse && needed.contains(&pulse.from) {
+                    ans = ans.lcm(&i);
+                    needed.swap_remove(needed.iter().position(|s| s == &pulse.from).unwrap());
+                    if needed.len() == 0 {
+                        return ans;
+                    }
+                }
                 
-                let x = records.entry(name.clone())
-                    .or_insert(vec![]);
-                if let Some((x, _)) = x.iter().enumerate().find(|(_, d)| d == &&subset) {
-                    cur_dependencies.remove(&name);
-                    cycles.insert(name, (subset, dbg!(x), dbg!(i - x)));
-                } else {
-                    x.push(subset);
+                let Some(module) = data.get_mut(&to) else { continue; };
+                if let Some(new_pulse) = module.process_signal(pulse) {
+                    for dest in module.destinations.iter().cloned() {
+                        pulses.push_back((dest.clone(), new_pulse.clone()));
+                    }
                 }
             }
-            
-            data = step_modules_raw(data);
-        }
-        
-        for (module, (node, start, length)) in cycles {
-            println!("{}: {} {}", module, start, length);
         }
         
         panic!("Exited without finding rx?")
     }
 }
-
-fn create_data_subset(modules: &HashSet<String>, data: &Data) -> Data {
-    let mut x = data.clone();
-    x.retain(|x, _| modules.contains(x));
-    x
-}
-
-// Knowledge Required:
-// Conjunction:
-//      Some Low => Some High
-//      All Low => All High
-//      Some High and All Low => Some High and All Low
-// Flip-flop:
-//      All Low => All High and Low
-//      No High Required
