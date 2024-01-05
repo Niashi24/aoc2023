@@ -1,5 +1,5 @@
 ﻿use itertools::Itertools;
-use nalgebra::{Matrix2, Matrix2x1, Matrix4, Matrix4x1};
+use nalgebra::{Matrix2, Matrix2x1, Matrix4, Matrix4x1, Matrix5, Matrix5x1};
 use crate::day::Day;
 
 pub struct Day24;
@@ -72,31 +72,27 @@ impl Day<Vec<Hail>> for Day24 {
 
     fn part_2(&self, data: &Vec<Hail>) -> i64 {
         // take 4 and solve
-        solve(data.iter().skip(1).cloned().take(4).collect_vec().try_into().unwrap()).unwrap() as i64
+        solve(data.iter().cloned().take(5).collect_vec().try_into().unwrap()).unwrap() as i64
     }
 }
 
-fn solve(mut hails: [Hail; 4]) -> Option<f64> {
-    
-    let A = Matrix4::from([
+fn solve(mut hails: [Hail; 5]) -> Option<f64> {
+    // solve for px, py, vx, vy algebraically (thank you @weasel137 !!)
+    let A = Matrix5::from([
         hails.clone().map(|r| r.uy()),
         hails.clone().map(|r| -r.ux()),
         hails.clone().map(|r| -r.sy()),
-        hails.clone().map(|r| r.sx())
+        hails.clone().map(|r| r.sx()),
+        [1.0; 5]
     ]);
-    let AINV = A.try_inverse().unwrap();
+    let AINV = A.try_inverse()?;
     
-    let B = Matrix4x1::from(hails.clone().map(|h| h.pos[0] * h.vel[1] - h.pos[1] * h.vel[0]));
+    let B = Matrix5x1::from(hails.clone().map(|h| h.pos[0] * h.vel[1] - h.pos[1] * h.vel[0]));
     
-    // Initial guess
-    let mut X = Matrix4x1::from_element(1.0);
-    // Repeat numerical approximation some amount of times
-    for _ in 0..1000 {
-        X = AINV * (B + Matrix4x1::from_element(X[0] * X[3] - X[1] * X[2]));
-    }
-    let [px, py, vx, vy] = X.data.0[0];
+    let X = AINV * B;
+    let [px, py, vx, vy, _] = X.data.0[0];
     
-    // solve for pz, vz algebraically    
+    // solve for pz, vz algebraically
     let [sx, _, sz1] = hails[0].pos;
     let [ux, _, uz1] = hails[0].vel;
     let [_, sy, sz2] = hails[1].pos;
@@ -109,10 +105,10 @@ fn solve(mut hails: [Hail; 4]) -> Option<f64> {
 
     let BZ = Matrix2::from([[dvy, dvx], [-dpy, -dpx]]);
     let CZ = Matrix2x1::from([dvy * sz2 - dpy * uz2, dvx * sz1 - dpx * uz1]);
-    let BZInv = BZ.try_inverse().unwrap();
+    let BZInv = BZ.try_inverse()?;
 
     let PZVZ = BZInv * CZ;
     let [pz, vz] = PZVZ.data.0[0];
     
-    Some(px + py + pz)
+    Some((px + py + pz).round())
 }
