@@ -1,7 +1,9 @@
 ﻿use std::collections::{HashMap, HashSet};
 use std::iter::repeat;
+use horner::eval_known_rank_polynomial;
 use indexmap::{indexset, IndexSet};
 use itertools::Itertools;
+use nalgebra::{Matrix3, Matrix3x1};
 use num::Integer;
 use pathfinding::prelude::{astar, brent};
 use crate::day10::{Direction, DIRECTIONS};
@@ -57,79 +59,80 @@ impl Day<Data> for Day21 {
 
     fn part_1(&self, data: &Data) -> i64 {
         let num_steps = if data.grid.w == 11 { 6 } else { 64 };
-        let mut to_visit = indexset![data.start];
-        let mut next_round = indexset![];
-        let x_range = 0..data.grid.w;
-        let y_range = 0..data.grid.h;
-        for _ in 0..num_steps {
-            while let Some(pos) = to_visit.pop() {
-                DIRECTIONS.iter()
-                    .filter_map(|d| d.transform_range(pos, &x_range, &y_range))
-                    .filter(|(x, y)| matches!(data.grid.get(*x, *y).unwrap(), Tile::Garden))
-                    .for_each(|pos| { next_round.insert(pos); });
-            }
-            
-            std::mem::swap(&mut to_visit, &mut next_round);
-        }
-        
-        to_visit.len() as i64
+        improved_solution(&data, num_steps, indexset![(data.start.0 as i64, data.start.1 as i64)]) as i64
     }
 
     fn part_2(&self, data: &Data) -> i64 {
-        // let (l, cycle, s) = 
-        //     brent(indexset![data.start], |x| step_positions(x, &data.grid));
-        // 
+        if data.grid.w == 11 { return 0; }
         
-        let num_steps = 26501365;
+        let points = [0, 1, 2].map(|i| {
+            let x = 65 + i * data.grid.w;
+            let y = improved_solution(&data, x, indexset![(data.start.0 as i64, data.start.1 as i64)]);
+            (x as f64, y as f64)
+        });
         
-        // dbg!(&cycle, l, s);
-        
-        let start = (data.start.0 as i64, data.start.1 as i64);
-        let (mut path, c) = astar(&start,
-              |p| DIRECTIONS.iter()
-                  .map(move |d| (d.transform_i(*p), 1))
-                  .filter(|((x, y), _)| matches!(data.grid.get_cycle(*x, *y).unwrap(), Tile::Garden))
-                  .collect_vec(),
-            |p| p.0,
-            |p| p.0 == -1
-        ).unwrap();
-        
-        println!("c = {c}");
-        let set = IndexSet::from_iter(path.clone());
-        print_grid_cycle(&data.grid, &set);
-        
-        let (path, c) = astar(&(data.grid.w as i64, path.pop().unwrap().1),
-                                  |p| DIRECTIONS.iter()
-            .map(move |d| (d.transform_i(*p), 1))
-            .filter(|((x, y), _)| matches!(data.grid.get_cycle(*x, *y).unwrap(), Tile::Garden))
-            .collect_vec(),
-                              |p| p.0,
-                              |p| p.0 == -1
-        ).unwrap();
-        
-        println!("c = {c}");
-        let set = IndexSet::from_iter(path.clone());
-        print_grid_cycle(&data.grid, &set);
-        
-        // println!("{}", s.)
-        // dbg!(s);
-        
-        let parity = (data.start.0 + data.start.1) % 2;
-        
-        let dist_to_corner = data.grid.w / 2 + data.grid.h / 2;
-        let diamond_width = (data.grid.w / 2 + data.grid.w);
-        
-        let positions: IndexSet<_> = data.grid.iter()
-            .filter(|(_, t)| t.is_garden())
-            .filter(|((x, y), _)| (x + y) % 2 == parity)
-            .map(|(p, _)| p)
-            .collect();
-        
-        // print_grid(&data.grid, &cycle);
-        // print_grid(&data.grid, &a);
-        
-        0
+        solve_and_eval_polynomial(&points, 26501365.).unwrap().round() as i64
     }
+}
+
+fn solve_and_eval_polynomial(points: &[(f64, f64); 3], x: f64) -> Option<f64> {
+    let vandermonde = Matrix3::from_fn(|y, x| points[y].0.powi(x as i32)).try_inverse()?;
+    let y = Matrix3x1::from(points.map(|r| r.1));
+    let mut coefs = (vandermonde * y).data.0[0];
+    coefs.reverse();
+    
+    Some(eval_known_rank_polynomial(x, &coefs))
+}
+
+// O(n^2)
+fn improved_solution(data: &Data, num_steps: usize, start_set: IndexSet<(i64, i64)>) -> usize {
+    
+    // let mut to_visit = indexset![(data.start.0 as i64, data.start.1 as i64)];
+    let mut to_visit = start_set;
+    let mut prev_round = indexset![];
+    let mut n_round = indexset![];
+    let mut next_round = indexset![];
+    let parity = (num_steps + 1) % 2;
+    // dbg!(parity);
+    let mut count = parity;
+    for i in 0..num_steps {
+        n_round = prev_round.clone();
+        prev_round = to_visit.clone();
+        while let Some(pos) = to_visit.pop() {
+            DIRECTIONS.iter()
+                .map(|d| d.transform_i(pos))
+                .filter(|(x, y)| data.grid.get_cycle(*x, *y).unwrap().is_garden())
+                .filter(|p| !n_round.contains(p))
+                .for_each(|pos| {
+                    if !next_round.contains(&pos) {
+                        next_round.insert(pos);
+                        if i % 2 == parity { count += 1; }
+                    }
+                });
+        }
+        
+        std::mem::swap(&mut to_visit, &mut next_round);
+    }
+    
+    count
+}
+
+// O(n^4)
+fn naive(data: &Data, num_steps: usize) -> IndexSet<(i64, i64)> {
+    let mut to_visit = indexset![(data.start.0 as i64, data.start.1 as i64)];
+    let mut next_round = indexset![];
+    for _ in 0..num_steps {
+        while let Some(pos) = to_visit.pop() {
+            DIRECTIONS.iter()
+                .map(|d| d.transform_i(pos))
+                .filter(|(x, y)| matches!(data.grid.get_cycle(*x, *y).unwrap(), Tile::Garden))
+                .for_each(|pos| { next_round.insert(pos); });
+        }
+
+        std::mem::swap(&mut to_visit, &mut next_round);
+    }
+
+    to_visit
 }
 
 fn step_positions(mut positions: IndexSet<(usize, usize)>, grid: &Grid<Tile>) -> IndexSet<(usize, usize)> {
@@ -186,5 +189,4 @@ fn print_grid_cycle(grid: &Grid<Tile>, positions: &IndexSet<(i64, i64)>) {
         println!();
     }
     println!();
-    
 }

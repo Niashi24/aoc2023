@@ -60,7 +60,7 @@ mod day25;
 mod graph;
 
 fn main() -> std::io::Result<()> {
-    test_day24()?;
+    test_day21()?;
     Ok(())
 }
 
