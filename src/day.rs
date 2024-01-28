@@ -14,7 +14,7 @@ pub fn run_with_test<TData, TDay: Day<TData>>(
     example_expected: (i64, i64),
     full_file: &str,
 ) -> std::io::Result<()> {
-    // println!("Testing with example dataset: ");
+    println!("Testing with example dataset: ");
     let example_actual = run(day, example_file)?;
     if example_actual != example_expected {
         println!("Error! Expected answer\n\"Part 1: {}, Part 2: {}\", but got\n\"Part 1: {}, Part 2: {}\"\x07", 

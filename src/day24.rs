@@ -1,5 +1,5 @@
 ﻿use itertools::Itertools;
-use nalgebra::{Matrix2, Matrix2x1, Matrix4, Matrix4x1, Matrix5, Matrix5x1};
+use nalgebra::{Matrix2, Matrix2x1, Matrix3, Matrix3x1, Matrix4, Matrix4x1, Matrix5, Matrix5x1};
 use crate::day::Day;
 
 pub struct Day24;
@@ -71,26 +71,30 @@ impl Day<Vec<Hail>> for Day24 {
     }
 
     fn part_2(&self, data: &Vec<Hail>) -> i64 {
-        // take 4 and solve
-        solve(data.iter().cloned().take(5).collect_vec().try_into().unwrap()).unwrap() as i64
+        // take 5 and solve
+        solve(data.iter()
+            .cloned()
+            .take(5)
+            .collect_vec()
+            .try_into()
+            .unwrap()
+        ).unwrap() as i64
     }
 }
 
 fn solve(mut hails: [Hail; 5]) -> Option<f64> {
     // solve for px, py, vx, vy algebraically (thank you @weasel137 !!)
-    let A = Matrix5::from([
+    let a = Matrix5::from([
         hails.clone().map(|r| r.uy()),
         hails.clone().map(|r| -r.ux()),
         hails.clone().map(|r| -r.sy()),
         hails.clone().map(|r| r.sx()),
         [1.0; 5]
     ]);
-    let AINV = A.try_inverse()?;
     
-    let B = Matrix5x1::from(hails.clone().map(|h| h.pos[0] * h.vel[1] - h.pos[1] * h.vel[0]));
-    
-    let X = AINV * B;
-    let [px, py, vx, vy, _] = X.data.0[0];
+    let b = Matrix5x1::from(hails.clone().map(|h| h.pos[0] * h.vel[1] - h.pos[1] * h.vel[0]));
+
+    let [px, py, vx, vy, _] = a.lu().solve(&b)?.data.0[0];
     
     // solve for pz, vz algebraically
     let [sx, _, sz1] = hails[0].pos;
@@ -103,12 +107,10 @@ fn solve(mut hails: [Hail; 5]) -> Option<f64> {
     let dvx = vx - ux;
     let dvy = vy - uy;
 
-    let BZ = Matrix2::from([[dvy, dvx], [-dpy, -dpx]]);
-    let CZ = Matrix2x1::from([dvy * sz2 - dpy * uz2, dvx * sz1 - dpx * uz1]);
-    let BZInv = BZ.try_inverse()?;
-
-    let PZVZ = BZInv * CZ;
-    let [pz, vz] = PZVZ.data.0[0];
+    let a = Matrix2::from([[dvy, dvx], [-dpy, -dpx]]);
+    let b = Matrix2x1::from([dvy * sz2 - dpy * uz2, dvx * sz1 - dpx * uz1]);
+    
+    let [pz, vz] = a.lu().solve(&b)?.data.0[0];
     
     Some((px + py + pz).round())
 }
