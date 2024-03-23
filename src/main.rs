@@ -6,6 +6,7 @@ use crate::day10::Day10;
 use crate::day11::Day11;
 use crate::day12::Day12;
 use crate::day13::Day13;
+use crate::day13_22::Day1322;
 use crate::day14::Day14;
 use crate::day15::Day15;
 use crate::day16::Day16;
@@ -58,9 +59,17 @@ mod day24;
 mod slope_descent;
 mod day25;
 mod graph;
+mod day13_22;
+mod backtracking;
 
 fn main() -> std::io::Result<()> {
-    test_day24()?;
+    backtracking::sudoku::test();
+    // use crate::day13_22::PacketData as PD;
+    // let a = crate::day13_22::PacketData::List(vec![crate::day13_22::PacketData::List(vec![crate::day13_22::PacketData::Value(2)])]);
+    // let b = crate::day13_22::PacketData::List(vec![crate::day13_22::PacketData::List(vec![crate::day13_22::PacketData::Value(6)])]);
+    // let a: day13_22::PacketData = "[[],3]".parse().unwrap();
+    // dbg!(a);
+    // test_day13_22()?;
     Ok(())
 }
 
@@ -325,5 +334,15 @@ fn test_day25() -> std::io::Result<()> {
         "input/day25e.txt",
         (54,0),
         "input/day25.txt"
+    )
+}
+
+fn test_day13_22() -> std::io::Result<()> {
+    println!("<--------   Running Day 13 2022   -------->");
+    run_with_test(
+        &Day1322,
+        "input/day13_22e.txt",
+        (13,140),
+        "input/day13_22.txt"
     )
 }
