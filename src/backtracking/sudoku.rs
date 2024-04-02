@@ -153,6 +153,10 @@ impl Action<Board> for AddNum {
         state.pop();
         state
     }
+
+    fn is_valid(&self, state: &Board) -> bool {
+        state.is_valid_action(self)
+    }
 }
 
 pub fn test() {
@@ -207,7 +211,7 @@ pub fn test() {
     
     let now = Instant::now();
     
-    let x = backtracking_iterative(board, |_| ACTIONS, Board::is_finished, Board::is_valid_action);
+    let x = backtracking_iterative(board, |_| ACTIONS, Board::is_finished);
     println!("Time elapsed: {:.2?}", now.elapsed());
     if let Some(b) = x {
         println!("{}", b);
